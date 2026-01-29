@@ -439,39 +439,47 @@ export default function YouTubeCoursePlayer() {
     }, [videoId, playerReady]);
 
     return (
-        <div className="min-h-screen bg-[#1c1d1f]">
-            {/* Top Navigation Bar - Udemy Style */}
-            <nav className="bg-[#2d2f31] border-b border-gray-700 sticky top-0 z-50 shadow-lg">
-                <div className="px-6 py-3">
+        <div className="min-h-screen bg-background text-foreground bg-mesh selection:bg-primary/30 font-sans">
+            {/* Top Navigation Bar */}
+            <nav className="glass sticky top-0 z-50 border-b border-border/50">
+                <div className="px-6 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-6">
-                            <Link href="/" className="flex items-center space-x-2 text-white hover:text-purple-400 transition-colors">
-                                <Home className="w-5 h-5" />
-                                <span className="font-semibold hidden sm:inline">Home</span>
+                        <div className="flex items-center space-x-8">
+                            <Link href="/" className="flex items-center space-x-3 group transition-transform hover:scale-105">
+                                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center glow-primary">
+                                    <img
+                                        src="/logo.png"
+                                        alt="CourseTube Logo"
+                                        className="w-5 h-5 object-contain"
+                                    />
+                                </div>
+                                <span className="font-bold tracking-tight hidden sm:inline">Home</span>
                             </Link>
-                            <Link href="/profile" className="flex items-center space-x-2 text-white hover:text-purple-400 transition-colors">
-                                <BookOpen className="w-5 h-5" />
-                                <span className="font-semibold hidden sm:inline">My Courses</span>
+                            <Link href="/profile" className="flex items-center space-x-3 group transition-transform hover:scale-105">
+                                <div className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center">
+                                    <BookOpen className="w-4 h-4 text-primary" />
+                                </div>
+                                <span className="font-bold tracking-tight hidden sm:inline">My Courses</span>
                             </Link>
                         </div>
 
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-6">
                             {videoTitle && (
-                                <h1 className="text-white font-semibold text-sm sm:text-base max-w-md truncate hidden md:block">
+                                <h1 className="text-foreground font-black text-sm uppercase tracking-wider max-w-md truncate hidden lg:block">
                                     {videoTitle}
                                 </h1>
                             )}
 
                             {/* Progress Indicator */}
                             {chapters.length > 0 && (
-                                <div className="flex items-center space-x-3 bg-[#1c1d1f] px-4 py-2 rounded-lg">
+                                <div className="flex items-center space-x-4 bg-card/50 backdrop-blur-md px-4 py-2 rounded-xl border border-border/50">
                                     <div className="flex items-center space-x-2">
-                                        <BarChart3 className="w-4 h-4 text-purple-400" />
-                                        <span className="text-sm text-gray-300 font-medium">{progressPercentage}%</span>
+                                        <BarChart3 className="w-4 h-4 text-primary" />
+                                        <span className="text-sm font-black">{progressPercentage}%</span>
                                     </div>
-                                    <div className="w-24 bg-gray-700 rounded-full h-2">
+                                    <div className="w-24 bg-secondary rounded-full h-1.5 overflow-hidden">
                                         <div
-                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                                            className="bg-primary h-full rounded-full transition-all duration-700 glow-primary"
                                             style={{ width: `${progressPercentage}%` }}
                                         ></div>
                                     </div>
@@ -480,99 +488,103 @@ export default function YouTubeCoursePlayer() {
 
                             <button
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-white"
+                                className="p-2.5 bg-secondary hover:bg-border rounded-xl transition-all border border-border/50 group"
                             >
-                                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5 group-hover:text-primary" />}
                             </button>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            <div className="flex h-[calc(100vh-60px)]">
+            <div className="flex h-[calc(100vh-73px)]">
                 {/* Main Video Area */}
-                <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'mr-0' : 'mr-0'}`}>
-                    {/* Video Player */}
-                    <div className="flex-1 bg-black relative">
+                <div className="flex-1 flex flex-col relative overflow-hidden">
+                    {/* Video Player Container */}
+                    <div className="flex-1 bg-black relative shadow-2xl">
                         {playerReady ? (
                             <div id="youtube-player" className="w-full h-full"></div>
                         ) : chapters.length > 0 ? (
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-purple-900/20 to-pink-900/20">
-                                <div className="text-center">
-                                    <div className="relative">
-                                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-                                        <Play className="w-6 h-6 text-purple-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                            <div className="flex items-center justify-center h-full bg-mesh">
+                                <div className="text-center animate-pulse">
+                                    <div className="relative mb-6">
+                                        <div className="rounded-full h-20 w-20 border-t-2 border-primary mx-auto"></div>
+                                        <Play className="w-8 h-8 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 fill-current" />
                                     </div>
-                                    <p className="text-gray-300 text-lg font-medium">Loading your course...</p>
+                                    <p className="text-muted-foreground text-sm font-black uppercase tracking-[0.2em]">Preparing Classroom</p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-purple-900/10 to-pink-900/10">
-                                <div className="text-center max-w-md px-6">
-                                    <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                                        <Play className="w-12 h-12 text-white ml-1" />
+                            <div className="flex items-center justify-center h-full bg-mesh">
+                                <div className="text-center max-w-lg px-8 py-12 glass rounded-[2.5rem] border-primary/20 shadow-2xl">
+                                    <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 glow-primary ring-1 ring-primary/30">
+                                        <Play className="w-10 h-10 text-primary ml-1 fill-current" />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-white mb-3">Ready to Learn?</h3>
-                                    <p className="text-gray-400 mb-6">Paste a YouTube URL in the sidebar to start your learning journey</p>
-                                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-                                        <Star className="w-4 h-4 text-yellow-500" />
-                                        <span>Track your progress • Resume anytime • Learn at your pace</span>
+                                    <h3 className="text-4xl font-black mb-4 tracking-tight">Ready to <span className="text-primary">Evolve</span>?</h3>
+                                    <p className="text-muted-foreground text-lg mb-8 leading-relaxed">Paste any YouTube URL in the sidebar to transform it into a structured learning course.</p>
+                                    <div className="flex flex-wrap items-center justify-center gap-4">
+                                        {["Track progress", "Resume anytime", "Take smart notes"].map((feat, i) => (
+                                            <div key={i} className="flex items-center gap-2 px-3 py-1.5 glass-pill rounded-full text-xs font-bold text-primary">
+                                                <Star className="w-3 h-3 fill-current" />
+                                                <span>{feat}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Course Info Bar */}
+                    {/* Enhanced Course Info Bar */}
                     {chapters.length > 0 && chapters[currentChapter] && (
-                        <div className="bg-[#2d2f31] border-t border-gray-700 px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center space-x-3 mb-2">
-                                        <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-semibold">
-                                            Lecture {currentChapter + 1} of {chapters.length}
+                        <div className="glass border-t border-border/50 px-8 py-6">
+                            <div className="flex items-center justify-between gap-8">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center space-x-3 mb-3">
+                                        <span className="px-3 py-1 glass-pill text-primary rounded-lg text-[10px] font-black uppercase tracking-wider">
+                                            Lecture {currentChapter + 1} / {chapters.length}
                                         </span>
                                         {videoProgress?.completedChapters.includes(currentChapter) && (
-                                            <span className="flex items-center space-x-1 text-green-400 text-xs font-medium">
+                                            <span className="flex items-center space-x-1.5 text-accent text-xs font-black uppercase tracking-widest">
                                                 <CheckCircle2 className="w-4 h-4" />
-                                                <span>Completed</span>
+                                                <span>Mastered</span>
                                             </span>
                                         )}
                                     </div>
-                                    <h3 className="text-white font-semibold text-lg mb-1">
+                                    <h3 className="text-2xl font-black mb-2 truncate">
                                         {chapters[currentChapter].title}
                                     </h3>
-                                    <div className="flex items-center space-x-4 text-sm text-gray-400">
-                                        <span className="flex items-center space-x-1">
-                                            <Clock className="w-4 h-4" />
+                                    <div className="flex items-center space-x-6 text-sm font-medium text-muted-foreground">
+                                        <span className="flex items-center space-x-2">
+                                            <Clock className="w-4 h-4 text-primary/70" />
                                             <span>{chapters[currentChapter].time}</span>
                                         </span>
-                                        <span>•</span>
-                                        <span>{videoProgress?.completedChapters.length || 0} of {chapters.length} lectures completed</span>
+                                        <div className="h-1 w-1 rounded-full bg-border"></div>
+                                        <span>{videoProgress?.completedChapters.length || 0} Lectures Completed</span>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-4">
                                     {currentChapter > 0 && (
                                         <button
                                             onClick={() => seekToChapter(currentChapter - 1)}
-                                            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+                                            className="px-6 py-3 bg-secondary hover:bg-border text-foreground rounded-2xl transition-all font-bold border border-border/50"
                                         >
                                             Previous
                                         </button>
                                     )}
                                     <button
                                         onClick={() => markChapterCompleted(currentChapter)}
-                                        className={`px-6 py-2 rounded-lg font-semibold transition-all shadow-lg ${videoProgress?.completedChapters.includes(currentChapter)
-                                                ? 'bg-green-600 hover:bg-green-700 text-white'
-                                                : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                                        className={`px-8 py-3 rounded-2xl font-black transition-all shadow-xl flex items-center gap-3 ${videoProgress?.completedChapters.includes(currentChapter)
+                                            ? 'bg-accent text-white glow-accent'
+                                            : 'bg-primary text-white glow-primary hover:scale-105 active:scale-95'
                                             }`}
                                     >
                                         {videoProgress?.completedChapters.includes(currentChapter) ? (
-                                            <span className="flex items-center space-x-2">
-                                                <CheckCircle2 className="w-5 h-5" />
-                                                <span>Completed</span>
-                                            </span>
+                                            <>
+                                                <CheckCircle2 className="w-5 h-5 fill-current" />
+                                                <span>Lecture Complete</span>
+                                            </>
                                         ) : (
                                             'Mark as Complete'
                                         )}
@@ -580,9 +592,9 @@ export default function YouTubeCoursePlayer() {
                                     {currentChapter < chapters.length - 1 && (
                                         <button
                                             onClick={() => seekToChapter(currentChapter + 1)}
-                                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all font-medium shadow-lg"
+                                            className="px-6 py-3 bg-foreground text-background rounded-2xl transition-all font-black hover:scale-105 active:scale-95 shadow-xl"
                                         >
-                                            Next
+                                            Next Lecture
                                         </button>
                                     )}
                                 </div>
@@ -592,161 +604,134 @@ export default function YouTubeCoursePlayer() {
                 </div>
 
                 {/* Sidebar - Course Content & Notes */}
-                <div className={`bg-[#2d2f31] border-l border-gray-700 transition-all duration-300 overflow-hidden ${sidebarOpen ? 'w-96' : 'w-0'
+                <div className={`glass border-l border-border/50 transition-all duration-500 overflow-hidden ${sidebarOpen ? 'w-[450px]' : 'w-0'
                     }`}>
                     <div className="h-full flex flex-col">
                         {/* Sidebar Tabs */}
-                        <div className="flex border-b border-gray-700">
-                            <button
-                                onClick={() => setSidebarTab('chapters')}
-                                className={`flex-1 px-4 py-3 font-semibold transition-colors flex items-center justify-center gap-2 ${sidebarTab === 'chapters'
-                                        ? 'bg-[#1c1d1f] text-purple-400 border-b-2 border-purple-500'
-                                        : 'text-gray-400 hover:text-white'
-                                    }`}
-                            >
-                                <ListOrdered className="w-4 h-4" />
-                                Chapters
-                            </button>
-                            <button
-                                onClick={() => setSidebarTab('notes')}
-                                className={`flex-1 px-4 py-3 font-semibold transition-colors flex items-center justify-center gap-2 ${sidebarTab === 'notes'
-                                        ? 'bg-[#1c1d1f] text-purple-400 border-b-2 border-purple-500'
-                                        : 'text-gray-400 hover:text-white'
-                                    }`}
-                            >
-                                <StickyNote className="w-4 h-4" />
-                                Notes
-                            </button>
+                        <div className="flex p-2 gap-2 bg-card/30 backdrop-blur-xl border-b border-border/50">
+                            {[
+                                { id: 'chapters', icon: ListOrdered, label: 'Chapters' },
+                                { id: 'notes', icon: StickyNote, label: 'Smart Notes' }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setSidebarTab(tab.id as any)}
+                                    className={`flex-1 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-3 text-sm ${sidebarTab === tab.id
+                                        ? 'bg-primary text-white glow-primary'
+                                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                                        }`}
+                                >
+                                    <tab.icon className="w-4 h-4" />
+                                    {tab.label}
+                                </button>
+                            ))}
                         </div>
 
                         {/* Tab Content */}
                         {sidebarTab === 'chapters' ? (
-                            <>
+                            <div className="flex flex-col h-full overflow-hidden">
                                 {/* Sidebar Header */}
-                                <div className="p-4 border-b border-gray-700">
-                                    <h2 className="text-white font-bold text-lg mb-2">Course Content</h2>
+                                <div className="p-4 border-b border-border/50 space-y-4">
+                                    <div>
+                                        <h2 className="text-lg font-black tracking-tight mb-0.5">Course Content</h2>
+                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Build your curriculum</p>
+                                    </div>
 
                                     {/* URL Input */}
-                                    <div className="space-y-2">
-                                        <div className="relative">
+                                    <div className="flex gap-2">
+                                        <div className="relative group flex-1">
                                             <input
                                                 type="text"
                                                 value={url}
                                                 onChange={(e) => setUrl(e.target.value)}
-                                                placeholder="Paste YouTube URL here..."
-                                                className="w-full px-3 py-2 bg-[#1c1d1f] border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                                                placeholder="YouTube URL..."
+                                                className="w-full px-3 py-2 bg-secondary border border-border/50 rounded-xl text-foreground placeholder-muted-foreground/50 focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm font-medium"
                                                 onKeyPress={(e) => e.key === 'Enter' && handleFetchChapters()}
                                             />
                                         </div>
                                         <button
                                             onClick={() => handleFetchChapters()}
                                             disabled={loading}
-                                            className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm"
+                                            className="px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-xl font-black transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-xs whitespace-nowrap"
                                         >
                                             {loading ? (
-                                                <>
-                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                                    <span>Loading...</span>
-                                                </>
+                                                <div className="animate-spin rounded-full h-3 w-3 border-2 border-background border-t-transparent"></div>
                                             ) : (
-                                                <>
-                                                    <Play className="w-4 h-4" />
-                                                    <span>Load Course</span>
-                                                </>
+                                                <span>Load</span>
                                             )}
                                         </button>
                                     </div>
 
                                     {error && (
-                                        <div className="mt-2 p-2 bg-red-500/10 border border-red-500/50 rounded-lg">
-                                            <p className="text-red-400 text-xs font-medium">❌ {error}</p>
+                                        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-center gap-3">
+                                            <span className="text-destructive text-sm font-bold">⚠️ {error}</span>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Course Stats */}
-                                {chapters.length > 0 && (
-                                    <div className="px-4 py-2 bg-[#1c1d1f] border-b border-gray-700">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="text-center">
-                                                <div className="text-lg font-bold text-white">{chapters.length}</div>
-                                                <div className="text-[10px] text-gray-400 uppercase tracking-wider">Lectures</div>
-                                            </div>
-                                            <div className="text-center">
-                                                <div className="text-lg font-bold text-purple-400">
-                                                    {videoProgress?.completedChapters.length || 0}
-                                                </div>
-                                                <div className="text-[10px] text-gray-400 uppercase tracking-wider">Completed</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
                                 {/* Chapters List */}
-                                <div className="flex-1 overflow-y-auto min-h-0">
+                                <div className="flex-1 overflow-y-auto p-4 space-y-2">
                                     {chapters.length > 0 ? (
-                                        <div className="p-2 space-y-1">
-                                            {chapters.map((chapter, index) => {
-                                                const isCompleted = videoProgress?.completedChapters.includes(index);
-                                                const isCurrent = currentChapter === index;
+                                        chapters.map((chapter, index) => {
+                                            const isCompleted = videoProgress?.completedChapters.includes(index);
+                                            const isCurrent = currentChapter === index;
 
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        onClick={() => seekToChapter(index)}
-                                                        className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${isCurrent
-                                                                ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/50 shadow-md'
-                                                                : isCompleted
-                                                                    ? 'bg-green-500/5 border border-green-500/20 hover:bg-green-500/10'
-                                                                    : 'bg-[#1c1d1f] border border-gray-800 hover:bg-gray-800 hover:border-gray-700'
-                                                            }`}
-                                                    >
-                                                        <div className="flex items-start space-x-3">
-                                                            {/* Lecture Number / Status Icon */}
-                                                            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-semibold text-xs mt-0.5 ${isCompleted
-                                                                    ? 'bg-green-500 text-white'
-                                                                    : isCurrent
-                                                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                                                        : 'bg-gray-700 text-gray-400'
-                                                                }`}>
-                                                                {isCompleted ? (
-                                                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                                                ) : isCurrent ? (
-                                                                    <Play className="w-3 h-3 ml-0.5" />
-                                                                ) : (
-                                                                    index + 1
-                                                                )}
-                                                            </div>
-
-                                                            {/* Chapter Info */}
-                                                            <div className="flex-1 min-w-0">
-                                                                <h4 className={`font-medium text-sm mb-0.5 line-clamp-2 leading-snug ${isCurrent ? 'text-white' : isCompleted ? 'text-green-300' : 'text-gray-300'
-                                                                    }`}>
-                                                                    {chapter.title}
-                                                                </h4>
-                                                                <div className="flex items-center space-x-2 text-[10px] text-gray-500">
-                                                                    <Clock className="w-3 h-3" />
-                                                                    <span>{chapter.time}</span>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Play Icon on Hover */}
-                                                            {!isCurrent && (
-                                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center">
-                                                                    <ChevronRight className="w-4 h-4 text-purple-400" />
-                                                                </div>
+                                            return (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => seekToChapter(index)}
+                                                    className={`w-full group text-left relative p-3 rounded-2xl transition-all duration-300 border ${isCurrent
+                                                        ? 'bg-primary/10 border-primary shadow-lg ring-1 ring-primary/50'
+                                                        : isCompleted
+                                                            ? 'bg-accent/5 border-accent/20 hover:bg-accent/10'
+                                                            : 'bg-card/40 border-border/30 hover:border-primary/30 hover:bg-card/60'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-start space-x-4">
+                                                        <div className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs transition-all ${isCompleted
+                                                            ? 'bg-accent text-white glow-accent'
+                                                            : isCurrent
+                                                                ? 'bg-primary text-white glow-primary scale-110'
+                                                                : 'bg-secondary text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
+                                                            }`}>
+                                                            {isCompleted ? (
+                                                                <CheckCircle2 className="w-4 h-4" />
+                                                            ) : isCurrent ? (
+                                                                <Play className="w-4 h-4 fill-current" />
+                                                            ) : (
+                                                                index + 1
                                                             )}
                                                         </div>
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className={`font-black text-sm mb-1.5 line-clamp-2 leading-snug transition-colors ${isCurrent ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                                                                {chapter.title}
+                                                            </h4>
+                                                            <div className="flex items-center space-x-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                                                                <span className="flex items-center space-x-1">
+                                                                    <Clock className="w-3 h-3" />
+                                                                    <span>{chapter.time}</span>
+                                                                </span>
+                                                                {isCompleted && (
+                                                                    <>
+                                                                        <div className="w-1 h-1 rounded-full bg-accent/50"></div>
+                                                                        <span className="text-accent">Lecture Mastered</span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
+                                                </button>
+                                            )
+                                        })
                                     ) : (
-                                        <div className="flex items-center justify-center h-full p-8">
+                                        <div className="flex items-center justify-center h-48 py-12 px-8">
                                             <div className="text-center">
-                                                <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                                                <p className="text-gray-400 text-sm">No lectures yet</p>
-                                                <p className="text-gray-500 text-xs mt-1">Add a YouTube URL to get started</p>
+                                                <div className="w-16 h-16 bg-secondary rounded-[1.5rem] flex items-center justify-center mx-auto mb-4 border border-border/50">
+                                                    <BookOpen className="w-8 h-8 text-muted-foreground/50" />
+                                                </div>
+                                                <p className="text-muted-foreground text-sm font-bold">Curriculum Empty</p>
+                                                <p className="text-muted-foreground/50 text-[10px] uppercase tracking-widest mt-1">Add URL to begin</p>
                                             </div>
                                         </div>
                                     )}
@@ -754,43 +739,49 @@ export default function YouTubeCoursePlayer() {
 
                                 {/* Progress Summary Footer */}
                                 {chapters.length > 0 && (
-                                    <div className="p-4 border-t border-gray-700 bg-[#1c1d1f]">
-                                        <div className="mb-3">
-                                            <div className="flex items-center justify-between text-xs mb-1.5">
-                                                <span className="text-gray-400 font-medium">Your Progress</span>
-                                                <span className="text-purple-400 font-bold">{progressPercentage}%</span>
+                                    <div className="p-4 border-t border-border/50 bg-card/50 backdrop-blur-2xl">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="space-y-1">
+                                                <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Overall Mastery</span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-3xl font-black text-primary">{progressPercentage}%</span>
+                                                    <div className="px-2 py-0.5 glass-pill rounded-full text-[10px] font-black text-accent border-accent/20">LEVEL UP</div>
+                                                </div>
                                             </div>
-                                            <div className="w-full bg-gray-700 rounded-full h-1.5">
-                                                <div
-                                                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-500"
-                                                    style={{ width: `${progressPercentage}%` }}
-                                                ></div>
+                                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                                                <BarChart3 className="w-6 h-6 text-primary" />
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                            <div className="bg-[#2d2f31] p-2 rounded border border-gray-700">
-                                                <div className="text-gray-500 mb-0.5">Completed</div>
-                                                <div className="text-white font-semibold">
-                                                    {videoProgress?.completedChapters.length || 0}/{chapters.length}
-                                                </div>
+
+                                        <div className="w-full bg-secondary rounded-full h-2 mb-6 overflow-hidden">
+                                            <div
+                                                className="bg-primary h-full rounded-full transition-all duration-1000 glow-primary"
+                                                style={{ width: `${progressPercentage}%` }}
+                                            ></div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="bg-secondary/50 p-3 rounded-2xl border border-border/50">
+                                                <div className="text-[10px] font-black text-muted-foreground uppercase mb-1">Lectures</div>
+                                                <div className="text-lg font-black">{videoProgress?.completedChapters.length || 0} <span className="text-muted-foreground/40 text-sm">/ {chapters.length}</span></div>
                                             </div>
-                                            <div className="bg-[#2d2f31] p-2 rounded border border-gray-700">
-                                                <div className="text-gray-500 mb-0.5">Last Watched</div>
-                                                <div className="text-white font-semibold">
-                                                    {videoProgress?.timestamp ? new Date(videoProgress.timestamp).toLocaleDateString() : 'Never'}
-                                                </div>
+                                            <div className="bg-secondary/50 p-3 rounded-2xl border border-border/50">
+                                                <div className="text-[10px] font-black text-muted-foreground uppercase mb-1">Status</div>
+                                                <div className="text-sm font-black text-primary uppercase tracking-wider">{progressPercentage === 100 ? 'Mastered' : 'Evolving'}</div>
                                             </div>
                                         </div>
                                     </div>
                                 )}
-                            </>
+                            </div>
                         ) : (
-                            <NotesBookmarks
-                                videoId={videoId}
-                                currentChapter={currentChapter}
-                                chapters={chapters}
-                                onSeekTo={seekToTimestamp}
-                            />
+                            <div className="flex-1 overflow-hidden flex flex-col">
+                                <NotesBookmarks
+                                    videoId={videoId}
+                                    currentChapter={currentChapter}
+                                    chapters={chapters}
+                                    onSeekTo={seekToTimestamp}
+                                />
+                            </div>
                         )}
                     </div>
                 </div>

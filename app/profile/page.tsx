@@ -88,19 +88,27 @@ export default function Profile() {
     const totalWatchTime = courses.reduce((acc, c) => acc + (c.progress.totalWatchTime || 0), 0);
 
     return (
-        <div className="min-h-screen bg-[#1c1d1f]">
+        <div className="min-h-screen bg-background text-foreground bg-mesh selection:bg-primary/30 font-sans">
             {/* Top Navigation Bar */}
-            <nav className="bg-[#2d2f31] border-b border-gray-700 sticky top-0 z-50 shadow-lg">
-                <div className="px-6 py-3">
+            <nav className="glass sticky top-0 z-50 border-b border-border/50">
+                <div className="px-6 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-6">
-                            <Link href="/" className="flex items-center space-x-2 text-white hover:text-purple-400 transition-colors">
-                                <Home className="w-5 h-5" />
-                                <span className="font-semibold">Home</span>
+                        <div className="flex items-center space-x-8">
+                            <Link href="/" className="flex items-center space-x-3 group transition-transform hover:scale-105">
+                                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center glow-primary">
+                                    <img
+                                        src="/logo.png"
+                                        alt="CourseTube Logo"
+                                        className="w-5 h-5 object-contain"
+                                    />
+                                </div>
+                                <span className="font-bold tracking-tight">Home</span>
                             </Link>
-                            <Link href="/courses" className="flex items-center space-x-2 text-white hover:text-purple-400 transition-colors">
-                                <Play className="w-5 h-5" />
-                                <span className="font-semibold">Course Player</span>
+                            <Link href="/courses" className="flex items-center space-x-3 group transition-transform hover:scale-105">
+                                <div className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center">
+                                    <Play className="w-4 h-4 text-primary" />
+                                </div>
+                                <span className="font-bold tracking-tight">Course Player</span>
                             </Link>
                         </div>
 
@@ -108,7 +116,7 @@ export default function Profile() {
                             <UserButton
                                 appearance={{
                                     elements: {
-                                        userButtonAvatarBox: "w-9 h-9 border-2 border-purple-500"
+                                        userButtonAvatarBox: "w-9 h-9 border-2 border-primary/50 hover:border-primary transition-colors"
                                     }
                                 }}
                             />
@@ -118,228 +126,209 @@ export default function Profile() {
             </nav>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <main className="max-w-7xl mx-auto px-6 py-16">
                 {/* User Header */}
-                <div className="mb-12">
-                    <div className="flex items-center space-x-6 mb-8">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-4xl font-bold shadow-2xl">
+                <div className="mb-20">
+                    <div className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-16">
+                        <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-primary via-purple-500 to-accent flex items-center justify-center text-white text-5xl font-black shadow-2xl glow-primary rotate-3 hover:rotate-0 transition-transform duration-500">
                             {user?.firstName?.[0] || user?.emailAddresses[0]?.emailAddress[0] || 'U'}
                         </div>
-                        <div>
-                            <h1 className="text-4xl font-bold text-white mb-2">
-                                {user?.firstName ? `Welcome back, ${user.firstName}!` : 'My Learning Dashboard'}
+                        <div className="text-center md:text-left">
+                            <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tight leading-tight">
+                                {user?.firstName ? (
+                                    <>Welcome back, <span className="text-primary">{user.firstName}</span>!</>
+                                ) : (
+                                    <>My <span className="text-primary">Learning</span> Dashboard</>
+                                )}
                             </h1>
-                            <p className="text-gray-400 text-lg">Track your progress and continue learning</p>
+                            <p className="text-xl text-muted-foreground font-medium max-w-2xl">Continue your journey of mastery and track your professional growth through CourseTube.</p>
                         </div>
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="bg-[#2d2f31] rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                                    <BookOpen className="w-6 h-6 text-purple-400" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[
+                            { label: "Courses", value: courses.length, icon: BookOpen, color: "text-primary", bg: "bg-primary/10", progress: 100 },
+                            { label: "Mastered", value: completedCourses, icon: CheckCircle2, color: "text-accent", bg: "bg-accent/10", progress: courses.length > 0 ? (completedCourses / courses.length) * 100 : 0 },
+                            { label: "Evolving", value: inProgressCourses, icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-400/10", progress: courses.length > 0 ? (inProgressCourses / courses.length) * 100 : 0 },
+                            { label: "Watch Time", value: formatWatchTime(totalWatchTime), icon: Clock, color: "text-amber-400", bg: "bg-amber-400/10", progress: 100 }
+                        ].map((stat, i) => (
+                            <div key={i} className="glass rounded-[2rem] p-8 border-border/50 hover:-translate-y-2 transition-all duration-300 shadow-xl group">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                        <stat.icon className={`w-7 h-7 ${stat.color}`} />
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-4xl font-black tracking-tighter">{stat.value}</div>
+                                        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{stat.label}</div>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-3xl font-bold text-white">{courses.length}</div>
-                                    <div className="text-xs text-gray-400 mt-1">Total Courses</div>
-                                </div>
-                            </div>
-                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500" style={{ width: '100%' }}></div>
-                            </div>
-                        </div>
-
-                        <div className="bg-[#2d2f31] rounded-xl p-6 border border-gray-700 hover:border-green-500 transition-all">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                                    <CheckCircle2 className="w-6 h-6 text-green-400" />
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-3xl font-bold text-white">{completedCourses}</div>
-                                    <div className="text-xs text-gray-400 mt-1">Completed</div>
+                                <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full ${stat.progress === 100 ? 'bg-primary' : stat.color.replace('text-', 'bg-')} transition-all duration-1000`}
+                                        style={{ width: `${stat.progress}%` }}
+                                    ></div>
                                 </div>
                             </div>
-                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-green-500" style={{ width: courses.length > 0 ? `${(completedCourses / courses.length) * 100}%` : '0%' }}></div>
-                            </div>
-                        </div>
-
-                        <div className="bg-[#2d2f31] rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                                    <TrendingUp className="w-6 h-6 text-blue-400" />
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-3xl font-bold text-white">{inProgressCourses}</div>
-                                    <div className="text-xs text-gray-400 mt-1">In Progress</div>
-                                </div>
-                            </div>
-                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-blue-500" style={{ width: courses.length > 0 ? `${(inProgressCourses / courses.length) * 100}%` : '0%' }}></div>
-                            </div>
-                        </div>
-
-                        <div className="bg-[#2d2f31] rounded-xl p-6 border border-gray-700 hover:border-yellow-500 transition-all">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                                    <Clock className="w-6 h-6 text-yellow-400" />
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-3xl font-bold text-white">{formatWatchTime(totalWatchTime)}</div>
-                                    <div className="text-xs text-gray-400 mt-1">Watch Time</div>
-                                </div>
-                            </div>
-                            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-yellow-500 to-orange-500" style={{ width: '100%' }}></div>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
                 {/* Courses Section */}
-                <div>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-white">Your Courses</h2>
+                <section>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                        <div>
+                            <h2 className="text-4xl font-black tracking-tight mb-2">Curriculum <span className="text-primary">Library</span></h2>
+                            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Manage your active learning modules</p>
+                        </div>
                         <Link
                             href="/courses"
-                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all font-semibold shadow-lg flex items-center space-x-2"
+                            className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20 font-black text-lg group"
                         >
-                            <Play className="w-4 h-4" />
-                            <span>Add New Course</span>
+                            <Play className="w-5 h-5 fill-current" />
+                            <span>Enroll New Course</span>
                         </Link>
                     </div>
 
                     {loading ? (
-                        <div className="flex items-center justify-center py-20">
-                            <div className="text-center">
-                                <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-                                <p className="text-gray-400 text-lg">Loading your courses...</p>
+                        <div className="flex flex-col items-center justify-center py-32 glass rounded-[3rem]">
+                            <div className="relative mb-8">
+                                <div className="animate-spin rounded-full h-20 w-20 border-t-2 border-primary"></div>
+                                <Zap className="w-8 h-8 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 fill-current" />
                             </div>
+                            <p className="text-muted-foreground font-black uppercase tracking-widest animate-pulse">Syncing Library...</p>
                         </div>
                     ) : error ? (
-                        <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-6 text-center">
-                            <p className="text-red-400 font-medium">❌ {error}</p>
+                        <div className="bg-destructive/10 border border-destructive/20 rounded-[2rem] p-12 text-center shadow-2xl">
+                            <h3 className="text-2xl font-black text-destructive mb-2 uppercase tracking-tight">Access Error</h3>
+                            <p className="text-destructive/70 font-medium">❌ {error}</p>
                         </div>
                     ) : courses.length === 0 ? (
-                        <div className="bg-[#2d2f31] rounded-xl p-16 text-center border border-gray-700">
-                            <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                                <BookOpen className="w-12 h-12 text-white" />
+                        <div className="glass rounded-[3rem] p-24 text-center border-border/50 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px]"></div>
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/20 rounded-full blur-[100px]"></div>
+
+                            <div className="relative z-10 max-w-md mx-auto">
+                                <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 glow-primary ring-1 ring-primary/30">
+                                    <BookOpen className="w-10 h-10 text-primary fill-current" />
+                                </div>
+                                <h3 className="text-4xl font-black mb-4 tracking-tight">Your Journey Starts Here</h3>
+                                <p className="text-muted-foreground text-lg mb-10 leading-relaxed font-medium">Your curriculum is waiting to be built. Add your first course from YouTube and start evolving today.</p>
+                                <Link
+                                    href="/courses"
+                                    className="inline-flex items-center gap-3 px-10 py-5 bg-foreground text-background rounded-2xl hover:scale-105 transition-all shadow-2xl font-black text-xl"
+                                >
+                                    <Play className="w-6 h-6 fill-current" />
+                                    Begin Learning
+                                </Link>
                             </div>
-                            <h3 className="text-2xl font-bold text-white mb-3">No courses yet</h3>
-                            <p className="text-gray-400 mb-8 max-w-md mx-auto">Start your learning journey by adding your first YouTube course!</p>
-                            <Link
-                                href="/courses"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl transition-all shadow-lg font-semibold"
-                            >
-                                <Play className="w-5 h-5" />
-                                Add Your First Course
-                            </Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {courses.map((course) => (
                                 <Link
                                     key={course.videoId}
                                     href={`/courses?v=${course.videoId}`}
-                                    className="group bg-[#2d2f31] rounded-xl overflow-hidden border border-gray-700 hover:border-purple-500 transition-all hover:shadow-2xl hover:shadow-purple-500/20"
+                                    className="group glass rounded-[2.5rem] overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-500 shadow-xl hover:shadow-primary/10 flex flex-col"
                                 >
                                     {/* Thumbnail */}
-                                    <div className="relative h-48 bg-gradient-to-br from-purple-900/30 to-pink-900/30 overflow-hidden">
+                                    <div className="relative h-56 overflow-hidden">
                                         <img
                                             src={`https://img.youtube.com/vi/${course.videoId}/maxresdefault.jpg`}
                                             alt={course.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                             onError={(e) => {
                                                 e.currentTarget.src = `https://img.youtube.com/vi/${course.videoId}/hqdefault.jpg`;
                                             }}
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80"></div>
 
-                                        {/* Progress Badge */}
-                                        <div className="absolute top-4 right-4">
+                                        {/* Status Badge */}
+                                        <div className="absolute top-6 right-6">
                                             {course.progress.progressPercentage === 100 ? (
-                                                <div className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
-                                                    <CheckCircle2 className="w-3 h-3" />
-                                                    Completed
+                                                <div className="px-4 py-2 bg-accent text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl glow-accent">
+                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                    Mastered
                                                 </div>
                                             ) : course.progress.progressPercentage > 0 ? (
-                                                <div className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold shadow-lg">
-                                                    {course.progress.progressPercentage}% Done
+                                                <div className="px-4 py-2 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl glow-primary">
+                                                    {course.progress.progressPercentage}% Complete
                                                 </div>
                                             ) : (
-                                                <div className="px-3 py-1 bg-gray-900/80 text-white rounded-full text-xs font-semibold shadow-lg">
+                                                <div className="px-4 py-2 bg-background/80 backdrop-blur-md text-foreground rounded-xl text-[10px] font-black uppercase tracking-widest border border-border/50">
                                                     Not Started
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* Play Overlay */}
-                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-2xl">
-                                                <Play className="w-8 h-8 text-purple-600 ml-1" />
+                                        {/* Play Hover State */}
+                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:backdrop-blur-sm">
+                                            <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-500">
+                                                <Play className="w-10 h-10 text-white ml-1 fill-current" />
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="p-6">
-                                        <h3 className="font-bold text-lg text-white mb-3 line-clamp-2 group-hover:text-purple-400 transition-colors">
+                                    {/* Card Content */}
+                                    <div className="p-8 flex-1 flex flex-col">
+                                        <h3 className="font-black text-xl mb-4 line-clamp-2 leading-[1.3] group-hover:text-primary transition-colors">
                                             {course.title}
                                         </h3>
 
-                                        {/* Progress Bar */}
-                                        <div className="mb-4">
-                                            <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                                                <span>Progress</span>
-                                                <span className="font-semibold text-purple-400">{course.progress.progressPercentage}%</span>
-                                            </div>
-                                            <div className="w-full bg-gray-700 rounded-full h-2">
-                                                <div
-                                                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
-                                                    style={{ width: `${course.progress.progressPercentage}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-
-                                        {/* Stats */}
-                                        <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
-                                            <span className="flex items-center gap-1">
-                                                <CheckCircle2 className="w-4 h-4" />
-                                                {course.progress.completedChapters.length}/{course.chapters.length}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-4 h-4" />
-                                                {formatWatchTime(course.progress.totalWatchTime)}
-                                            </span>
-                                        </div>
-
-                                        {/* Last Watched */}
-                                        <div className="text-xs text-gray-500 mb-4">
-                                            Last watched: {formatDate(course.lastAccessed)}
-                                        </div>
-
-                                        {/* Resume Button */}
-                                        {course.progress.progressPercentage > 0 && course.progress.progressPercentage < 100 && (
-                                            <div className="pt-4 border-t border-gray-700">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-gray-400">
-                                                        Continue from Lecture {course.progress.lastWatchedChapter + 1}
-                                                    </span>
-                                                    <div className="flex items-center gap-2 text-purple-400 font-semibold text-sm">
-                                                        <Play className="w-4 h-4" />
-                                                        <span>Resume</span>
-                                                    </div>
+                                        <div className="mt-auto space-y-6">
+                                            {/* Progress Bar */}
+                                            <div>
+                                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                                                    <span>Course Progress</span>
+                                                    <span className="text-primary">{course.progress.progressPercentage}%</span>
+                                                </div>
+                                                <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
+                                                    <div
+                                                        className="bg-primary h-full rounded-full transition-all duration-700"
+                                                        style={{ width: `${course.progress.progressPercentage}%` }}
+                                                    ></div>
                                                 </div>
                                             </div>
-                                        )}
+
+                                            {/* Meta Stats */}
+                                            <div className="flex items-center justify-between gap-4 py-4 border-t border-border/50">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+                                                        <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                                                    </div>
+                                                    <div className="text-[10px] font-black">
+                                                        <span className="text-foreground">{course.progress.completedChapters.length}</span>
+                                                        <span className="text-muted-foreground/60"> / {course.chapters.length}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+                                                        <Clock className="w-4 h-4 text-muted-foreground" />
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-foreground uppercase tracking-wider">{formatWatchTime(course.progress.totalWatchTime)}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Last Activity */}
+                                            <div className="flex items-center justify-between pt-2">
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+                                                    Last active: {formatDate(course.lastAccessed)}
+                                                </div>
+                                                {course.progress.progressPercentage > 0 && course.progress.progressPercentage < 100 && (
+                                                    <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest">
+                                                        <span>Resume</span>
+                                                        <Target className="w-3.5 h-3.5" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </Link>
                             ))}
                         </div>
                     )}
-                </div>
-            </div>
+                </section>
+            </main>
         </div>
     );
 }

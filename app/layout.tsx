@@ -1,14 +1,17 @@
 import { ClerkProvider } from '@clerk/nextjs'
-import { Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import './globals.css'
 
 
-const inter = Inter({ subsets: ['latin'] })
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const metadata = {
-  title: 'CourseTube - Learn from YouTube',
-  description: 'Transform YouTube videos into structured learning courses with progress tracking and smart notes.',
+  title: 'CourseTube - Master Any Skill via YouTube',
+  description: 'The premium learning experience. Transform YouTube into a structured academic environment with progress tracking and smart notes.',
   icons: {
     icon: [
       {
@@ -36,7 +39,7 @@ export default function RootLayout({
         <head>
           <link rel="icon" href="/logo.png" />
         </head>
-        <body className={inter.className}>
+        <body className={`${jakarta.className} bg-background text-foreground antialiased`}>
           {children}
           <Analytics />
         </body>
