@@ -1,51 +1,63 @@
-CourseTube – YouTube → Structured Courses
+# CourseTube
 
-CourseTube converts any YouTube video (with chapters) into a clean, structured course—similar to Udemy.
-Users get auto-generated notes, bookmarks, and a personal dashboard that saves progress so they can continue where they left off.
+CourseTube is a modern learning management system that transforms any YouTube video into a structured, distraction-free educational course. By extracting chapter information and providing a suite of interactive tools, it bridges the gap between passive video watching and active learning.
 
-🚀 Features
+## Features
 
-Paste YouTube URL with chapters → instantly get a structured course.
+### Course Management
+- Smart Chapter Extraction: Automatically parses YouTube video data to generate a structured course curriculum.
+- Persistent Progress Tracking: Real-time monitoring of chapter completion with automatic saving.
+- Personalized Dashboard: A centralized view for managing enrolled courses, viewing progress, and resuming active lessons.
 
-add notes and bookmarks to key moments.
+### Enhanced Learning Tools
+- Distraction-Free Player: A custom video interface optimized for focus, removing secondary YouTube elements like recommendations and comments.
+- Contextual Notes: Create timestamped notes that are linked directly to specific moments in the video.
+- Bookmark System: Save critical timestamps for quick reference during revision.
+- Seamless Syncing: Synchronize progress across devices to resume learning exactly where you left off.
 
-User dashboard with saved courses & progress tracking.
+### Premium Experience
+- Nebula Dark Interface: A high-end design system featuring glassmorphism, smooth micro-animations, and a cohesive dark theme.
+- Interactive UI: Built with modern components for a fluid, responsive user experience.
+- Deep Analytics: Visualize learning patterns and progress milestones.
 
-Continue learning from your last watched chapter.
+## Technology Stack
 
-Built with Next.js + Clerk Auth + MongoDB.
+- Framework: Next.js 16 (App Router)
+- Authentication: Clerk
+- Database: MongoDB via Mongoose
+- UI Components: HeroUI (NextUI)
+- Animations: Framer Motion
+- Styling: TailwindCSS 4
+- Icons: Lucide React
 
-🧰 Tech Stack
+## Configuration
 
-Frontend: Next.js 14
+To run this project locally, create a .env.local file in the root directory and provide the following environment variables:
 
-Auth: Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+MONGODB_URI=your_mongodb_connection_string
 
-Database: MongoDB (Mongoose)
+## Getting Started
 
-Styling: TailwindCSS
+1. Clone the repository:
+   git clone https://github.com/chinmaye5/CourseTube.git
 
-🔐 .env Structure
+2. Install dependencies:
+   npm install
 
-Create a .env.local file with:
+3. Run the development server:
+   npm run dev
 
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-MONGODB_URI=
+4. Open http://localhost:3000 in your browser to view the application.
 
-📦 Installation
-git clone https://github.com/chinmaye5/CourseTube.git
-cd CourseTube
-npm install
+## Project Structure
 
-▶️ Run the App
+- /app: Application routes, layouts, and API endpoints.
+- /components: Shared React components.
+- /lib: Database connection logic and utility functions.
+- /public: Static assets including logos and icons.
 
-Development:
+## License
 
-npm run dev
-
-
-Production:
-
-npm run build
-npm start
+This project is open-source and available under the MIT License.
