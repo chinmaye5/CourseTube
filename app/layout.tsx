@@ -1,6 +1,7 @@
 import { ClerkProvider } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
+import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
 
@@ -32,13 +33,20 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <head>
           <link rel="icon" href="/logo.png" />
         </head>
         <body className={inter.className}>
-          {children}
-          <Analytics />
+          <ThemeProvider
+            attribute="data-theme"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Analytics />
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
