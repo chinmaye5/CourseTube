@@ -15,6 +15,7 @@ import {
   ArrowRight
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import CardSwap, { Card } from '@/components/CardSwap';
 
 export default function Home() {
   return (
@@ -82,57 +83,117 @@ export default function Home() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-indigo-500/10 dark:bg-indigo-600/10 blur-[120px] rounded-full"></div>
 
         <div className="container mx-auto px-6 py-24 md:py-32 relative">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full mb-8 font-medium text-sm backdrop-blur-sm">
-              <Sparkles className="w-4 h-4" />
-              Transform YouTube into Your Classroom
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            <div className="text-left max-w-2xl lg:w-1/2">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full mb-8 font-medium text-sm backdrop-blur-sm">
+                <Sparkles className="w-4 h-4" />
+                Transform YouTube into Your Classroom
+              </div>
+
+              {/* Main Heading */}
+              <h1 className="text-5xl md:text-7xl font-bold mb-6 text-foreground leading-tight">
+                Learn Smarter with
+                <span className="block bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent mt-2">
+                  YouTube Courses
+                </span>
+              </h1>
+
+              {/* Subheading */}
+              <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-2xl leading-relaxed">
+                Track your progress, navigate chapters effortlessly, and turn any YouTube video into a structured learning experience.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/courses"
+                  className="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-xl hover:from-indigo-700 hover:to-cyan-700 transition-all shadow-lg hover:shadow-2xl hover:shadow-indigo-500/40 font-semibold text-lg flex items-center justify-center gap-2"
+                >
+                  <Play className="w-5 h-5" />
+                  Start Learning
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="#features"
+                  className="px-8 py-4 bg-surface-theme border border-border-theme text-foreground rounded-xl hover:bg-card-theme hover:border-indigo-500 transition-all font-semibold text-lg flex items-center justify-center"
+                >
+                  Learn More
+                </Link>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-8 mt-16 max-w-2xl border-t border-border-theme/50 pt-12">
+                <div className="text-left">
+                  <div className="text-3xl font-bold text-foreground mb-2">100%</div>
+                  <div className="text-sm text-slate-500 font-medium">Free Forever</div>
+                </div>
+                <div className="text-left border-x border-border-theme px-8">
+                  <div className="text-3xl font-bold text-foreground mb-2">∞</div>
+                  <div className="text-sm text-slate-500 font-medium">Unlimited Courses</div>
+                </div>
+                <div className="text-left pl-8">
+                  <div className="text-3xl font-bold text-foreground mb-2">24/7</div>
+                  <div className="text-sm text-slate-500 font-medium">Access Anytime</div>
+                </div>
+              </div>
             </div>
 
-            {/* Main Heading */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-foreground leading-tight">
-              Learn Smarter with
-              <span className="block bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent mt-2">
-                YouTube Courses
-              </span>
-            </h1>
-
-            {/* Subheading */}
-            <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Track your progress, navigate chapters effortlessly, and turn any YouTube video into a structured learning experience.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/courses"
-                className="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-xl hover:from-indigo-700 hover:to-cyan-700 transition-all shadow-lg hover:shadow-2xl hover:shadow-indigo-500/40 font-semibold text-lg flex items-center justify-center gap-2"
-              >
-                <Play className="w-5 h-5" />
-                Start Learning
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="#features"
-                className="px-8 py-4 bg-surface-theme border border-border-theme text-foreground rounded-xl hover:bg-card-theme hover:border-indigo-500 transition-all font-semibold text-lg"
-              >
-                Learn More
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-foreground mb-2">100%</div>
-                <div className="text-sm text-slate-500">Free Forever</div>
-              </div>
-              <div className="text-center border-x border-border-theme">
-                <div className="text-3xl font-bold text-foreground mb-2">∞</div>
-                <div className="text-sm text-slate-500">Unlimited Courses</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-foreground mb-2">24/7</div>
-                <div className="text-sm text-slate-500">Access Anytime</div>
+            {/* CardSwap Section */}
+            <div className="lg:w-1/2 relative h-[500px] w-full hidden lg:block">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-full max-w-[600px]">
+                <CardSwap
+                  cardDistance={40}
+                  verticalDistance={40}
+                  delay={4000}
+                  pauseOnHover={true}
+                >
+                  <Card className="p-6 bg-slate-900 border-indigo-500/30 overflow-hidden shadow-2xl">
+                    <div className="h-full flex flex-col">
+                      <div className="h-40 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-lg mb-4 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <Play className="w-16 h-16 text-white/50" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">Mastering Next.js 15</h3>
+                      <p className="text-indigo-100/70 text-sm">Level up your full-stack skills with the latest App Router and Server Actions.</p>
+                      <div className="mt-auto flex items-center gap-2">
+                        <div className="h-2 flex-1 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-indigo-500 w-[65%]" />
+                        </div>
+                        <span className="text-xs text-indigo-300">65% Done</span>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="p-6 bg-slate-900 border-cyan-500/30 overflow-hidden shadow-2xl">
+                    <div className="h-full flex flex-col">
+                      <div className="h-40 bg-gradient-to-br from-cyan-600 to-blue-700 rounded-lg mb-4 flex items-center justify-center">
+                        <TrendingUp className="w-16 h-16 text-white/50" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">AI Engineering 101</h3>
+                      <p className="text-cyan-100/70 text-sm">Build intelligent apps using LLMs, Vector Databases, and LangChain.</p>
+                      <div className="mt-auto flex items-center gap-2">
+                        <div className="h-2 flex-1 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-cyan-500 w-[42%]" />
+                        </div>
+                        <span className="text-xs text-cyan-300">42% Done</span>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="p-6 bg-slate-900 border-emerald-500/30 overflow-hidden shadow-2xl">
+                    <div className="h-full flex flex-col">
+                      <div className="h-40 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-lg mb-4 flex items-center justify-center">
+                        <Award className="w-16 h-16 text-white/50" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">System Design Masterclass</h3>
+                      <p className="text-emerald-100/70 text-sm">Learn to architect scalable systems for millions of users.</p>
+                      <div className="mt-auto flex items-center gap-2">
+                        <div className="h-2 flex-1 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-emerald-500 w-[88%]" />
+                        </div>
+                        <span className="text-xs text-emerald-300">88% Done</span>
+                      </div>
+                    </div>
+                  </Card>
+                </CardSwap>
               </div>
             </div>
           </div>
@@ -291,5 +352,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
