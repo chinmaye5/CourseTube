@@ -13,7 +13,10 @@ import {
     Award,
     Target,
     Zap,
-    BarChart3
+    BarChart3,
+    Trash2,
+    AlertCircle,
+    X as CloseIcon
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -37,6 +40,8 @@ export default function Profile() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -59,6 +64,34 @@ export default function Profile() {
             setError(err instanceof Error ? err.message : 'Failed to load courses');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteCourse = async () => {
+        if (!courseToDelete) return;
+
+        try {
+            setIsDeleting(true);
+            const response = await fetch('/api/user-courses', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ videoId: courseToDelete.videoId }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to delete course');
+            }
+
+            // Remove from local state
+            setCourses(courses.filter(c => c.videoId !== courseToDelete.videoId));
+            setCourseToDelete(null);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Failed to delete course');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -258,6 +291,19 @@ export default function Profile() {
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 dark:from-black/80 to-transparent"></div>
 
+                                        {/* Delete Button */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setCourseToDelete(course);
+                                            }}
+                                            className="absolute top-4 left-4 p-2 bg-red-500/20 hover:bg-red-500 text-white rounded-lg backdrop-blur-md border border-white/20 transition-all opacity-0 group-hover:opacity-100 z-10"
+                                            title="Delete Course"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+
                                         {/* Progress Badge */}
                                         <div className="absolute top-4 right-4">
                                             {course.progress.progressPercentage === 100 ? (
@@ -342,6 +388,49 @@ export default function Profile() {
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {courseToDelete && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center space-x-3 text-red-500 mb-4">
+                            <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-foreground">Delete Course?</h3>
+                        </div>
+
+                        <p className="text-slate-500 dark:text-slate-400 mb-6">
+                            Are you sure you want to delete <span className="font-semibold text-foreground">"{courseToDelete.title}"</span>?
+                            This will also remove all your progress and notes for this course.
+                        </p>
+
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={() => setCourseToDelete(null)}
+                                className="flex-1 px-4 py-2 bg-card-theme hover:bg-surface-theme text-foreground rounded-lg transition-colors font-semibold border border-border-theme"
+                                disabled={isDeleting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteCourse}
+                                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold shadow-lg shadow-red-500/20 flex items-center justify-center space-x-2"
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Delete</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

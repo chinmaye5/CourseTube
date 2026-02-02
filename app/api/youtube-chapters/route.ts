@@ -103,6 +103,39 @@ function formatTime(milliseconds: number): string {
     }
 }
 
+async function fetchVideoTitle(videoId: string, fallbackHtml: string, fallbackData: any): Promise<string> {
+    try {
+        // Method 1: Use OEmbed (Most reliable)
+        const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+        const res = await fetch(oembedUrl);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.title) return data.title;
+        }
+    } catch (err) {
+        console.error('OEmbed fetch failed:', err);
+    }
+
+    // Method 2: Fallback to ytInitialData
+    try {
+        const title = fallbackData?.contents?.twoColumnWatchNextResults?.results?.results?.contents?.[0]?.videoPrimaryInfoRenderer?.title?.runs?.[0]?.text;
+        if (title) return title;
+    } catch (err) { }
+
+    // Method 3: Fallback to HTML <title> tag
+    const titleMatch = fallbackHtml.match(/<title>(.*?) - YouTube<\/title>/i) || fallbackHtml.match(/<title>(.*?)<\/title>/i);
+    if (titleMatch && titleMatch[1]) {
+        return titleMatch[1]
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+    }
+
+    return 'YouTube Course';
+}
+
 export async function POST(request: NextRequest) {
     try {
         const { videoId } = await request.json();
@@ -130,20 +163,22 @@ export async function POST(request: NextRequest) {
         }
 
         const chapters = extractChapters(data);
+        const title = await fetchVideoTitle(videoId, html, data);
 
-        if (chapters.length === 0) {
-            return NextResponse.json({
-                error: 'No chapters found for this video',
-                chapters: []
-            }, { status: 404 });
-        }
-
-        return NextResponse.json({ chapters });
+        // We return 200 even if chapters are empty, as long as we have a title
+        // This allows the UI to at least show the video name
+        return NextResponse.json({
+            chapters,
+            title,
+            hasChapters: chapters.length > 0
+        });
     } catch (error) {
+        console.error('Chapters API Error:', error);
         return NextResponse.json(
             {
                 error: error instanceof Error ? error.message : 'Internal server error',
-                chapters: []
+                chapters: [],
+                title: 'YouTube Course'
             },
             { status: 500 }
         );

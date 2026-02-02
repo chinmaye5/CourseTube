@@ -45,3 +45,37 @@ export async function GET(request: NextRequest) {
         );
     }
 }
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { userId } = getAuth(request);
+
+        if (!userId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { videoId } = await request.json();
+
+        if (!videoId) {
+            return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+        }
+
+        const client = await clientPromise;
+        const db = client.db('courses');
+        const collection = db.collection('userProgress');
+
+        const result = await collection.deleteOne({ userId, videoId });
+
+        if (result.deletedCount === 0) {
+            return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'Course deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting course:', error);
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+}

@@ -98,7 +98,8 @@ export default function YouTubeCoursePlayer() {
         localStorage.setItem('youtube-course-progress', JSON.stringify(progress));
 
         // Debounce MongoDB saves to avoid too many requests
-        if (videoId && chapters.length > 0 && progress[videoId]) {
+        // We now save even if progress[videoId] isn't fully initialized to ensure TITLE is saved
+        if (videoId && chapters.length > 0) {
             if (saveTimeoutRef.current) {
                 clearTimeout(saveTimeoutRef.current);
             }
@@ -107,7 +108,7 @@ export default function YouTubeCoursePlayer() {
                 saveProgressToDatabase();
             }, 2000);
         }
-    }, [progress, videoId, chapters]);
+    }, [progress, videoId, chapters, videoTitle]);
 
     const loadProgressForVideo = async (videoId: string) => {
         try {
@@ -238,13 +239,26 @@ export default function YouTubeCoursePlayer() {
             }
 
             const data = await response.json();
-            setVideoTitle(data.title || 'YouTube Course');
-            const chaptersWithTimestamps = data.chapters.map((chapter: Chapter) => ({
-                ...chapter,
-                timestamp: parseTimeToSeconds(chapter.time)
-            }));
-            setChapters(chaptersWithTimestamps);
-            setPlayerReady(true);
+            const fetchedTitle = data.title || 'YouTube Course';
+            setVideoTitle(fetchedTitle);
+
+            if (data.chapters && data.chapters.length > 0) {
+                const chaptersWithTimestamps = data.chapters.map((chapter: Chapter) => ({
+                    ...chapter,
+                    timestamp: parseTimeToSeconds(chapter.time)
+                }));
+                setChapters(chaptersWithTimestamps);
+                setPlayerReady(true);
+            } else {
+                setError('This video does not have any chapters/segments. You can still watch it, but chapter navigation will be unavailable.');
+                setChapters([]);
+                setPlayerReady(true); // Still allow video to play
+            }
+
+            // If we have a real title, save it immediately to fix "YouTube Course" titles
+            if (fetchedTitle !== 'YouTube Course') {
+                saveProgressToDatabase();
+            }
 
             // Set current chapter from progress if it exists
             if (progress[id]) {
