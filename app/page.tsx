@@ -12,7 +12,11 @@ import {
   FileText,
   BarChart3,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  MousePointer2,
+  Layout,
+  MessageSquare,
+  Rocket
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import CardSwap, { Card } from '@/components/CardSwap';
@@ -194,6 +198,88 @@ export default function Home() {
                     </div>
                   </Card>
                 </CardSwap>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* The Process Section */}
+      <div className="bg-card-theme/30 py-32 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border-theme to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border-theme to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="container mx-auto px-6 relative">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-6xl font-extrabold text-foreground mb-6 tracking-tight">
+              The Journey to <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-cyan-500">Mastery</span>
+            </h2>
+            <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+              Transform any YouTube video into a professional learning environment in four seamless steps.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Connecting Line (Desktop) */}
+            <div className="hidden lg:block absolute top-[60px] left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-indigo-500/20 via-cyan-500 to-emerald-500/20" />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+              {/* Step 1 */}
+              <div className="relative flex flex-col items-center text-center group">
+                <div className="w-24 h-24 rounded-3xl bg-surface-theme border border-border-theme flex items-center justify-center mb-8 relative z-10 group-hover:border-indigo-500 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-500 rotate-3 group-hover:rotate-0">
+                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-indigo-500 text-white text-xs font-bold flex items-center justify-center border-4 border-background shadow-lg">
+                    01
+                  </div>
+                  <MousePointer2 className="w-10 h-10 text-indigo-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-3">Copy URL</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed px-4">
+                  Grab any YouTube link—whether it's a single deep-dive or a massive 100-video playlist.
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative flex flex-col items-center text-center group">
+                <div className="w-24 h-24 rounded-3xl bg-surface-theme border border-border-theme flex items-center justify-center mb-8 relative z-10 group-hover:border-cyan-500 group-hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all duration-500 -rotate-3 group-hover:rotate-0">
+                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-cyan-500 text-white text-xs font-bold flex items-center justify-center border-4 border-background shadow-lg">
+                    02
+                  </div>
+                  <Layout className="w-10 h-10 text-cyan-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-3">Instant Mapping</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed px-4">
+                  Our AI scans the content and instantly structures it into a logical, easy-to-follow curriculum.
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="relative flex flex-col items-center text-center group">
+                <div className="w-24 h-24 rounded-3xl bg-surface-theme border border-border-theme flex items-center justify-center mb-8 relative z-10 group-hover:border-emerald-500 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500 rotate-6 group-hover:rotate-0">
+                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center border-4 border-background shadow-lg">
+                    03
+                  </div>
+                  <MessageSquare className="w-10 h-10 text-emerald-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-3">Focus Mode</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed px-4">
+                  Learn without distractions. Take notes, track progress, and resume from your exact timestamp.
+                </p>
+              </div>
+
+              {/* Step 4 */}
+              <div className="relative flex flex-col items-center text-center group">
+                <div className="w-24 h-24 rounded-3xl bg-surface-theme border border-border-theme flex items-center justify-center mb-8 relative z-10 group-hover:border-amber-500 group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all duration-500 -rotate-6 group-hover:rotate-0">
+                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center border-4 border-background shadow-lg">
+                    04
+                  </div>
+                  <Rocket className="w-10 h-10 text-amber-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-3">Mastery Unlocked</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed px-4">
+                  Transform passive content into structured knowledge you can deploy in the real world.
+                </p>
               </div>
             </div>
           </div>
