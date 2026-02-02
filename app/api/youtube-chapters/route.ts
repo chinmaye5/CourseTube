@@ -4,6 +4,7 @@ interface Chapter {
     title: string;
     time: string;
     url: string;
+    videoId?: string;
 }
 
 function extractInitialData(html: string) {
@@ -91,6 +92,30 @@ function extractChapters(data: any): Chapter[] {
     }
 }
 
+function extractPlaylistVideos(data: any): Chapter[] {
+    try {
+        const videos = data?.contents?.twoColumnBrowseResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents?.[0]?.playlistVideoListRenderer?.contents;
+
+        if (videos && Array.isArray(videos)) {
+            return videos
+                .filter((item: any) => item.playlistVideoRenderer)
+                .map((item: any) => {
+                    const v = item.playlistVideoRenderer;
+                    return {
+                        title: v.title?.runs?.[0]?.text || 'Untitled Video',
+                        time: v.lengthText?.simpleText || '0:00',
+                        url: `https://youtube.com/watch?v=${v.videoId}`,
+                        videoId: v.videoId
+                    };
+                });
+        }
+        return [];
+    } catch (err) {
+        console.error('Error extracting playlist videos:', err);
+        return [];
+    }
+}
+
 function formatTime(milliseconds: number): string {
     const seconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(seconds / 60);
@@ -136,15 +161,32 @@ async function fetchVideoTitle(videoId: string, fallbackHtml: string, fallbackDa
     return 'YouTube Course';
 }
 
+async function fetchPlaylistTitle(playlistId: string, fallbackHtml: string, fallbackData: any): Promise<string> {
+    try {
+        const title = fallbackData?.metadata?.playlistMetadataRenderer?.title;
+        if (title) return title;
+    } catch (err) { }
+
+    const titleMatch = fallbackHtml.match(/<title>(.*?) - YouTube<\/title>/i) || fallbackHtml.match(/<title>(.*?)<\/title>/i);
+    if (titleMatch && titleMatch[1]) {
+        return titleMatch[1].replace(' - YouTube', '');
+    }
+
+    return 'YouTube Playlist Course';
+}
+
 export async function POST(request: NextRequest) {
     try {
-        const { videoId } = await request.json();
+        const { videoId, playlistId } = await request.json();
 
-        if (!videoId) {
-            return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+        if (!videoId && !playlistId) {
+            return NextResponse.json({ error: 'Video ID or Playlist ID is required' }, { status: 400 });
         }
 
-        const url = `https://www.youtube.com/watch?v=${videoId}`;
+        const url = playlistId
+            ? `https://www.youtube.com/playlist?list=${playlistId}`
+            : `https://www.youtube.com/watch?v=${videoId}`;
+
         const res = await fetch(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -162,15 +204,24 @@ export async function POST(request: NextRequest) {
             throw new Error('Could not extract ytInitialData from YouTube page');
         }
 
-        const chapters = extractChapters(data);
-        const title = await fetchVideoTitle(videoId, html, data);
+        let chapters: Chapter[] = [];
+        let title = '';
+        let isPlaylist = false;
 
-        // We return 200 even if chapters are empty, as long as we have a title
-        // This allows the UI to at least show the video name
+        if (playlistId) {
+            chapters = extractPlaylistVideos(data);
+            title = await fetchPlaylistTitle(playlistId, html, data);
+            isPlaylist = true;
+        } else {
+            chapters = extractChapters(data);
+            title = await fetchVideoTitle(videoId, html, data);
+        }
+
         return NextResponse.json({
             chapters,
             title,
-            hasChapters: chapters.length > 0
+            hasChapters: chapters.length > 0,
+            isPlaylist
         });
     } catch (error) {
         console.error('Chapters API Error:', error);

@@ -30,6 +30,7 @@ interface Chapter {
     time: string;
     url: string;
     timestamp: number;
+    videoId?: string;
 }
 
 interface ProgressData {
@@ -50,6 +51,7 @@ export default function YouTubeCoursePlayer() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [videoId, setVideoId] = useState('');
+    const [playingVideoId, setPlayingVideoId] = useState('');
     const [progress, setProgress] = useState<ProgressData>({});
     const [currentChapter, setCurrentChapter] = useState(0);
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -57,10 +59,25 @@ export default function YouTubeCoursePlayer() {
     const [videoTitle, setVideoTitle] = useState('');
     const [isPlaying, setIsPlaying] = useState(false);
     const [sidebarTab, setSidebarTab] = useState<'chapters' | 'notes'>('chapters');
+    const [isPlaylistCourse, setIsPlaylistCourse] = useState(false);
 
     const playerRef = useRef<any>(null);
     const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Refs for closure-safe access in callbacks
+    const currentChapterRef = useRef(0);
+    const chaptersRef = useRef<Chapter[]>([]);
+    const isPlaylistCourseRef = useRef(false);
+    const videoIdRef = useRef('');
+    const progressRef = useRef<ProgressData>({});
+
+    // Update refs whenever state changes
+    useEffect(() => { currentChapterRef.current = currentChapter; }, [currentChapter]);
+    useEffect(() => { chaptersRef.current = chapters; }, [chapters]);
+    useEffect(() => { isPlaylistCourseRef.current = isPlaylistCourse; }, [isPlaylistCourse]);
+    useEffect(() => { videoIdRef.current = videoId; }, [videoId]);
+    useEffect(() => { progressRef.current = progress; }, [progress]);
 
     // Load progress from localStorage and MongoDB
     useEffect(() => {
@@ -71,13 +88,19 @@ export default function YouTubeCoursePlayer() {
                 setProgress(JSON.parse(savedProgress));
             }
 
-            // Check for video ID in URL parameters
+            // Check for video or playlist IDs in URL parameters
             const videoIdParam = searchParams.get('v');
-            if (videoIdParam && user) {
-                // Load progress from MongoDB for this specific video FIRST
-                await loadProgressForVideo(videoIdParam);
+            const playlistIdParam = searchParams.get('list');
+            const idToLoad = playlistIdParam || videoIdParam;
 
-                const youtubeUrl = `https://www.youtube.com/watch?v=${videoIdParam}`;
+            if (idToLoad && user) {
+                // Load progress from MongoDB for this ID
+                await loadProgressForVideo(idToLoad);
+
+                const youtubeUrl = playlistIdParam
+                    ? `https://www.youtube.com/playlist?list=${playlistIdParam}`
+                    : `https://www.youtube.com/watch?v=${videoIdParam}`;
+
                 setUrl(youtubeUrl);
 
                 // Auto-load the course after progress is loaded
@@ -100,15 +123,11 @@ export default function YouTubeCoursePlayer() {
         // Debounce MongoDB saves to avoid too many requests
         // We now save even if progress[videoId] isn't fully initialized to ensure TITLE is saved
         if (videoId && chapters.length > 0) {
-            if (saveTimeoutRef.current) {
-                clearTimeout(saveTimeoutRef.current);
-            }
-
             saveTimeoutRef.current = setTimeout(() => {
                 saveProgressToDatabase();
             }, 2000);
         }
-    }, [progress, videoId, chapters, videoTitle]);
+    }, [progress, videoId, chapters, videoTitle, playingVideoId]);
 
     const loadProgressForVideo = async (videoId: string) => {
         try {
@@ -190,11 +209,23 @@ export default function YouTubeCoursePlayer() {
         }
     };
 
-    const extractVideoId = (url: string) => {
-        const match = url.match(
+    const extractIds = (url: string) => {
+        const videoMatch = url.match(
             /(?:v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
         );
-        return match ? match[1] : null;
+        const playlistMatch = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+
+        // Fix: Also check if v= contains a playlist ID (starts with PL)
+        let pId = playlistMatch ? playlistMatch[1] : null;
+        if (!pId) {
+            const vParamMatch = url.match(/[?&]v=(PL[a-zA-Z0-9_-]+)/);
+            if (vParamMatch) pId = vParamMatch[1];
+        }
+
+        return {
+            videoId: (videoMatch && (!pId || !videoMatch[0].includes(pId))) ? videoMatch[1] : null,
+            playlistId: pId
+        };
     };
 
     const parseTimeToSeconds = (timeStr: string): number => {
@@ -220,51 +251,94 @@ export default function YouTubeCoursePlayer() {
         setPlayerReady(false);
 
         try {
-            const id = extractVideoId(targetUrl);
-            if (!id) {
-                throw new Error('Invalid YouTube URL');
+            const { videoId: vId, playlistId: pId } = extractIds(targetUrl);
+
+            if (!vId && !pId) {
+                throw new Error('Invalid YouTube URL. Please provide a video or playlist link.');
             }
-            setVideoId(id);
+
+            const fetchBody = pId ? { playlistId: pId } : { videoId: vId };
+            const idToUse = pId || vId || '';
+            setVideoId(idToUse);
 
             const response = await fetch('/api/youtube-chapters', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ videoId: id }),
+                body: JSON.stringify(fetchBody),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to fetch chapters');
+                throw new Error('Failed to fetch course content');
             }
 
             const data = await response.json();
             const fetchedTitle = data.title || 'YouTube Course';
             setVideoTitle(fetchedTitle);
+            setIsPlaylistCourse(!!data.isPlaylist);
 
-            if (data.chapters && data.chapters.length > 0) {
-                const chaptersWithTimestamps = data.chapters.map((chapter: Chapter) => ({
+            const fetchedChapters = data.chapters || [];
+
+            if (fetchedChapters.length > 0) {
+                const chaptersWithTimestamps = fetchedChapters.map((chapter: Chapter) => ({
                     ...chapter,
                     timestamp: parseTimeToSeconds(chapter.time)
                 }));
                 setChapters(chaptersWithTimestamps);
+
+                // Determine which video to start with
+                let initialVideoId = vId;
+                let initialChapterIdx = 0;
+
+                // Priority 1: Video ID explicitly in the URL
+                if (vId) {
+                    const idx = chaptersWithTimestamps.findIndex((c: Chapter) => c.videoId === vId);
+                    if (idx !== -1) initialChapterIdx = idx;
+                }
+                // Priority 2: Resume from progress if it's a playlist
+                else if (data.isPlaylist && progressRef.current[idToUse]) {
+                    const resumeChapter = progressRef.current[idToUse].lastWatchedChapter || 0;
+                    if (chaptersWithTimestamps[resumeChapter]) {
+                        initialChapterIdx = resumeChapter;
+                        initialVideoId = chaptersWithTimestamps[resumeChapter].videoId || null;
+                    }
+                }
+                // Priority 3: Default to first video
+                if (!initialVideoId && chaptersWithTimestamps[0].videoId) {
+                    initialVideoId = chaptersWithTimestamps[0].videoId;
+                }
+
+                if (initialVideoId) setPlayingVideoId(initialVideoId);
+                setCurrentChapter(initialChapterIdx);
+                currentChapterRef.current = initialChapterIdx;
+
                 setPlayerReady(true);
             } else {
-                setError('This video does not have any chapters/segments. You can still watch it, but chapter navigation will be unavailable.');
+                setError('No lectures found for this course.');
                 setChapters([]);
-                setPlayerReady(true); // Still allow video to play
+                if (!data.isPlaylist) {
+                    setPlayingVideoId(idToUse);
+                    setPlayerReady(true);
+                }
             }
 
-            // If we have a real title, save it immediately to fix "YouTube Course" titles
+            // If we have a real title, save it immediately
             if (fetchedTitle !== 'YouTube Course') {
                 saveProgressToDatabase();
             }
 
             // Set current chapter from progress if it exists
-            if (progress[id]) {
-                const resumeChapter = progress[id].lastWatchedChapter || 0;
+            if (progress[idToUse]) {
+                const resumeChapter = progress[idToUse].lastWatchedChapter || 0;
                 console.log('🎯 Will resume from chapter:', resumeChapter);
                 setCurrentChapter(resumeChapter);
+                currentChapterRef.current = resumeChapter;
+
+                // If it's a playlist, make sure we load the correct video for this chapter
+                if (data.isPlaylist && fetchedChapters[resumeChapter]?.videoId) {
+                    setPlayingVideoId(fetchedChapters[resumeChapter].videoId);
+                }
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -274,14 +348,22 @@ export default function YouTubeCoursePlayer() {
     };
 
     const initializeYouTubePlayer = () => {
-        if (!videoId || !window.YT) return;
+        if (!playingVideoId || !window.YT) return;
 
+        if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
+            console.log('🔄 Loading next video:', playingVideoId);
+            playerRef.current.loadVideoById(playingVideoId);
+            return;
+        }
+
+        console.log('🏗️ Creating new player for:', playingVideoId);
         playerRef.current = new window.YT.Player('youtube-player', {
-            videoId: videoId,
+            videoId: playingVideoId,
             playerVars: {
                 playsinline: 1,
                 rel: 0,
                 modestbranding: 1,
+                autoplay: 1,
             },
             events: {
                 onReady: onPlayerReady,
@@ -291,13 +373,21 @@ export default function YouTubeCoursePlayer() {
     };
 
     const onPlayerReady = (event: any) => {
+        const vid = videoIdRef.current;
+        const chaps = chaptersRef.current;
+        const isPlaylist = isPlaylistCourseRef.current;
+
         // Resume from last watched chapter
-        if (progress[videoId] && chapters.length > 0) {
-            const lastChapter = progress[videoId].lastWatchedChapter || 0;
-            if (chapters[lastChapter]) {
-                console.log('▶️ Resuming from chapter', lastChapter, 'at', chapters[lastChapter].timestamp, 'seconds');
-                playerRef.current.seekTo(chapters[lastChapter].timestamp, true);
-                setCurrentChapter(lastChapter);
+        if (progress[vid] && chaps.length > 0) {
+            const lastChapter = progress[vid].lastWatchedChapter || 0;
+            if (chaps[lastChapter]) {
+                if (isPlaylist) {
+                    // For playlists, we already set the correct videoId in handleFetchChapters
+                } else {
+                    console.log('▶️ Resuming single video from chapter', lastChapter);
+                    playerRef.current.seekTo(chaps[lastChapter].timestamp, true);
+                    setCurrentChapter(lastChapter);
+                }
             }
         }
         startProgressTracking();
@@ -310,11 +400,26 @@ export default function YouTubeCoursePlayer() {
         } else if (event.data === window.YT.PlayerState.PAUSED) {
             setIsPlaying(false);
             stopProgressTracking();
-            saveProgressToDatabase();
         } else if (event.data === window.YT.PlayerState.ENDED) {
             setIsPlaying(false);
             stopProgressTracking();
-            saveProgressToDatabase();
+
+            const isPlaylist = isPlaylistCourseRef.current;
+            const currentChap = currentChapterRef.current;
+            const chaps = chaptersRef.current;
+
+            if (isPlaylist) {
+                console.log('🏁 Video ended, auto-advancing from chapter:', currentChap);
+                // Auto-mark as completed
+                markChapterCompleted(currentChap, true);
+
+                if (currentChap < chaps.length - 1) {
+                    setTimeout(() => seekToChapter(currentChap + 1), 1000);
+                }
+            } else {
+                // For single video, just mark last chapter as complete if appropriate
+                markChapterCompleted(currentChap, true);
+            }
         }
     };
 
@@ -335,12 +440,15 @@ export default function YouTubeCoursePlayer() {
 
         const currentTime = playerRef.current.getCurrentTime();
 
-        // Find current chapter based on timestamp
-        let newCurrentChapter = 0;
-        for (let i = chapters.length - 1; i >= 0; i--) {
-            if (currentTime >= chapters[i].timestamp) {
-                newCurrentChapter = i;
-                break;
+        // Find current chapter based on timestamp (only for single-video courses)
+        let newCurrentChapter = currentChapter;
+
+        if (!isPlaylistCourse) {
+            for (let i = chapters.length - 1; i >= 0; i--) {
+                if (currentTime >= chapters[i].timestamp) {
+                    newCurrentChapter = i;
+                    break;
+                }
             }
         }
 
@@ -382,7 +490,14 @@ export default function YouTubeCoursePlayer() {
     };
 
     const seekToChapter = (chapterIndex: number) => {
-        if (playerRef.current && chapters[chapterIndex]) {
+        if (!chapters[chapterIndex]) return;
+
+        if (isPlaylistCourse && chapters[chapterIndex].videoId) {
+            // Load new video if it's a playlist
+            setPlayingVideoId(chapters[chapterIndex].videoId!);
+            setCurrentChapter(chapterIndex);
+        } else if (playerRef.current) {
+            // Seek within same video if it's a normal course
             playerRef.current.seekTo(chapters[chapterIndex].timestamp, true);
             playerRef.current.playVideo();
             setCurrentChapter(chapterIndex);
@@ -396,7 +511,7 @@ export default function YouTubeCoursePlayer() {
         }
     };
 
-    const markChapterCompleted = (chapterIndex: number) => {
+    const markChapterCompleted = (chapterIndex: number, forceStatus?: boolean) => {
         if (!videoId) return;
 
         setProgress(prev => {
@@ -408,11 +523,15 @@ export default function YouTubeCoursePlayer() {
                 timestamp: Date.now()
             };
 
-            const isCompleted = videoProgress.completedChapters.includes(chapterIndex);
+            const isCurrentlyCompleted = videoProgress.completedChapters.includes(chapterIndex);
+            const shouldBeCompleted = forceStatus !== undefined ? forceStatus : !isCurrentlyCompleted;
 
-            const newCompletedChapters = isCompleted
-                ? videoProgress.completedChapters.filter(idx => idx !== chapterIndex)
-                : [...videoProgress.completedChapters, chapterIndex];
+            let newCompletedChapters;
+            if (shouldBeCompleted) {
+                newCompletedChapters = [...new Set([...videoProgress.completedChapters, chapterIndex])];
+            } else {
+                newCompletedChapters = videoProgress.completedChapters.filter(idx => idx !== chapterIndex);
+            }
 
             const progressPercentage = Math.round((newCompletedChapters.length / chapters.length) * 100);
 
@@ -453,7 +572,7 @@ export default function YouTubeCoursePlayer() {
         return () => {
             stopProgressTracking();
         };
-    }, [videoId, playerReady]);
+    }, [playingVideoId, playerReady]);
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">

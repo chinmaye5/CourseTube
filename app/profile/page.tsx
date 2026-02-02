@@ -273,117 +273,126 @@ export default function Profile() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {courses.map((course) => (
-                                <Link
-                                    key={course.videoId}
-                                    href={`/courses?v=${course.videoId}`}
-                                    className="group bg-surface-theme rounded-xl overflow-hidden border border-border-theme hover:border-indigo-500 transition-all hover:shadow-2xl hover:shadow-indigo-500/20"
-                                >
-                                    {/* Thumbnail */}
-                                    <div className="relative h-48 bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 dark:from-indigo-900/30 dark:to-cyan-900/30 overflow-hidden">
-                                        <img
-                                            src={`https://img.youtube.com/vi/${course.videoId}/maxresdefault.jpg`}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                            onError={(e) => {
-                                                e.currentTarget.src = `https://img.youtube.com/vi/${course.videoId}/hqdefault.jpg`;
-                                            }}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 dark:from-black/80 to-transparent"></div>
+                            {courses.map((course) => {
+                                const isPlaylist = course.videoId.startsWith('PL');
+                                const paramName = isPlaylist ? 'list' : 'v';
+                                return (
+                                    <Link
+                                        key={course.videoId}
+                                        href={`/courses?${paramName}=${course.videoId}`}
+                                        className="group bg-surface-theme rounded-xl overflow-hidden border border-border-theme hover:border-indigo-500 transition-all hover:shadow-2xl hover:shadow-indigo-500/20"
+                                    >
+                                        {/* Thumbnail */}
+                                        <div className="relative h-48 bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 dark:from-indigo-900/30 dark:to-cyan-900/30 overflow-hidden">
+                                            {(() => {
+                                                const thumbnailId = course.chapters?.[0]?.videoId || course.videoId;
+                                                return (
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${thumbnailId}/maxresdefault.jpg`}
+                                                        alt={course.title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = `https://img.youtube.com/vi/${thumbnailId}/hqdefault.jpg`;
+                                                        }}
+                                                    />
+                                                );
+                                            })()}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 dark:from-black/80 to-transparent"></div>
 
-                                        {/* Delete Button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setCourseToDelete(course);
-                                            }}
-                                            className="absolute top-4 left-4 p-2 bg-red-500/20 hover:bg-red-500 text-white rounded-lg backdrop-blur-md border border-white/20 transition-all opacity-0 group-hover:opacity-100 z-10"
-                                            title="Delete Course"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                            {/* Delete Button */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setCourseToDelete(course);
+                                                }}
+                                                className="absolute top-4 left-4 p-2 bg-red-500/20 hover:bg-red-500 text-white rounded-lg backdrop-blur-md border border-white/20 transition-all opacity-0 group-hover:opacity-100 z-10"
+                                                title="Delete Course"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
 
-                                        {/* Progress Badge */}
-                                        <div className="absolute top-4 right-4">
-                                            {course.progress.progressPercentage === 100 ? (
-                                                <div className="px-3 py-1 bg-emerald-500 text-white rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg border border-emerald-400/20">
-                                                    <CheckCircle2 className="w-3 h-3" />
-                                                    Completed
+                                            {/* Progress Badge */}
+                                            <div className="absolute top-4 right-4">
+                                                {course.progress.progressPercentage === 100 ? (
+                                                    <div className="px-3 py-1 bg-emerald-500 text-white rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg border border-emerald-400/20">
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                        Completed
+                                                    </div>
+                                                ) : course.progress.progressPercentage > 0 ? (
+                                                    <div className="px-3 py-1 bg-indigo-500 text-white rounded-full text-xs font-semibold shadow-lg border border-indigo-400/20">
+                                                        {course.progress.progressPercentage}% Done
+                                                    </div>
+                                                ) : (
+                                                    <div className="px-3 py-1 bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-white rounded-full text-xs font-semibold shadow-lg border border-slate-200 dark:border-slate-700">
+                                                        Not Started
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Play Overlay */}
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-200">
+                                                    <Play className="w-8 h-8 text-indigo-600 ml-1" />
                                                 </div>
-                                            ) : course.progress.progressPercentage > 0 ? (
-                                                <div className="px-3 py-1 bg-indigo-500 text-white rounded-full text-xs font-semibold shadow-lg border border-indigo-400/20">
-                                                    {course.progress.progressPercentage}% Done
+                                            </div>
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="p-6">
+                                            <h3 className="font-bold text-lg text-foreground mb-3 line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                {course.title}
+                                            </h3>
+
+                                            {/* Progress Bar */}
+                                            <div className="mb-4">
+                                                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                                    <span>Progress</span>
+                                                    <span className="font-semibold text-indigo-500 dark:text-indigo-400">{course.progress.progressPercentage}%</span>
                                                 </div>
-                                            ) : (
-                                                <div className="px-3 py-1 bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-white rounded-full text-xs font-semibold shadow-lg border border-slate-200 dark:border-slate-700">
-                                                    Not Started
+                                                <div className="w-full bg-card-theme rounded-full h-2">
+                                                    <div
+                                                        className="bg-gradient-to-r from-indigo-500 to-cyan-500 h-2 rounded-full transition-all duration-300"
+                                                        style={{ width: `${course.progress.progressPercentage}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+
+                                            {/* Stats */}
+                                            <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                                <span className="flex items-center gap-1">
+                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    {course.progress.completedChapters.length}/{course.chapters.length}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Clock className="w-4 h-4" />
+                                                    {formatWatchTime(course.progress.totalWatchTime)}
+                                                </span>
+                                            </div>
+
+                                            {/* Last Watched */}
+                                            <div className="text-xs text-slate-500 dark:text-slate-500 mb-4">
+                                                Last watched: {formatDate(course.lastAccessed)}
+                                            </div>
+
+                                            {/* Resume Button */}
+                                            {course.progress.progressPercentage > 0 && course.progress.progressPercentage < 100 && (
+                                                <div className="pt-4 border-t border-border-theme">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                                                            Continue from Lecture {course.progress.lastWatchedChapter + 1}
+                                                        </span>
+                                                        <div className="flex items-center gap-2 text-indigo-500 dark:text-indigo-400 font-semibold text-sm">
+                                                            <Play className="w-4 h-4" />
+                                                            <span>Resume</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* Play Overlay */}
-                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="w-16 h-16 bg-white/95 rounded-full flex items-center justify-center shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-200">
-                                                <Play className="w-8 h-8 text-indigo-600 ml-1" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="p-6">
-                                        <h3 className="font-bold text-lg text-foreground mb-3 line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                            {course.title}
-                                        </h3>
-
-                                        {/* Progress Bar */}
-                                        <div className="mb-4">
-                                            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-                                                <span>Progress</span>
-                                                <span className="font-semibold text-indigo-500 dark:text-indigo-400">{course.progress.progressPercentage}%</span>
-                                            </div>
-                                            <div className="w-full bg-card-theme rounded-full h-2">
-                                                <div
-                                                    className="bg-gradient-to-r from-indigo-500 to-cyan-500 h-2 rounded-full transition-all duration-300"
-                                                    style={{ width: `${course.progress.progressPercentage}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-
-                                        {/* Stats */}
-                                        <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                            <span className="flex items-center gap-1">
-                                                <CheckCircle2 className="w-4 h-4" />
-                                                {course.progress.completedChapters.length}/{course.chapters.length}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-4 h-4" />
-                                                {formatWatchTime(course.progress.totalWatchTime)}
-                                            </span>
-                                        </div>
-
-                                        {/* Last Watched */}
-                                        <div className="text-xs text-slate-500 dark:text-slate-500 mb-4">
-                                            Last watched: {formatDate(course.lastAccessed)}
-                                        </div>
-
-                                        {/* Resume Button */}
-                                        {course.progress.progressPercentage > 0 && course.progress.progressPercentage < 100 && (
-                                            <div className="pt-4 border-t border-border-theme">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                        Continue from Lecture {course.progress.lastWatchedChapter + 1}
-                                                    </span>
-                                                    <div className="flex items-center gap-2 text-indigo-500 dark:text-indigo-400 font-semibold text-sm">
-                                                        <Play className="w-4 h-4" />
-                                                        <span>Resume</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </Link>
-                            ))}
+                                    </Link>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
