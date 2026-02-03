@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CourseTube 
+Live link: https://coursetube.vercel.app
+
+CourseTube is a sophisticated learning management platform that transforms YouTube content into structured, distraction-free educational experiences. By leveraging instant mapping and precision progress tracking, it provides learners with the tools necessary to turn passive video consumption into active mastery.
+
+## Key Features
+
+- **Structured Curriculum Mapping**: Automatically organizes YouTube playlists and videos into a logical, easy-to-follow learning path.
+- **Precision Progress Tracking**: Persistent storage of learning progress across sessions, including chapter completion detection.
+- **Intelligent Chapter Navigation**: Seamless integration with YouTube timestamps for instant access to specific topics.
+- **Context-Aware Documentation**: Markdown-supported note-taking system with automatic video timestamping for contextual review.
+- **Analytics Dashboard**: Comprehensive visualization of learning habits, including watch time metrics and course completion statistics.
+- **Global Discovery Library**: A community-curated collection of high-quality courses across various domains including Frontend Engineering, Artificial Intelligence, and System Design.
+- **Focus Mode**: A distraction-free learning environment designed to minimize cognitive load and maximize retention.
+
+## Technology Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Library**: React 19
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4.0
+- **Animation**: Framer Motion and GSAP
+- **Authentication**: Clerk
+- **Database**: MongoDB with Mongoose
+- **State Management**: React Hooks and Server Actions
+- **Theming**: next-themes (Dark/Light Mode support)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 20.x or higher
+- MongoDB instance
+- Clerk account for authentication
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/coursetube.git
+   cd coursetube
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+3. Configure environment variables:
+   Create a `.env.local` file in the root directory and add the following:
+   ```env
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_pub_key
+   CLERK_SECRET_KEY=your_clerk_secret_key
+   MONGODB_URI=your_mongodb_connection_string
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+- `/app`: Next.js application routes and server components.
+- `/components`: Reusable UI components built with a focus on modularity and performance.
+- `/lib`: Core utility functions, database configurations, and shared logic.
+- `/public`: Static assets including brand assets and icons.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contribution Guidelines
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+We welcome contributions to CourseTube. Please ensure that any pull requests follow the established coding standards and include appropriate documentation updates.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## Acknowledgments
+
+- YouTube Data API for content integration.
+- The open-source community for the robust toolset that powers this platform.

@@ -45,20 +45,20 @@ const RECOMMENDATIONS: RecommendedSection[] = [
         topic: "Frontend Masterclass",
         courses: [
             { videoId: "bMknfKXIFA8", title: "React Course for Beginners", duration: "12h" },
-            { videoId: "SqcY0Gl908M", title: "Next.js 15 Full Tutorial", duration: "8h" },
-            { videoId: "C72WBaAIsxc", title: "Mastering Tailwind CSS", duration: "4h" },
-            { videoId: "hQAHSlTtcmY", title: "TypeScript In-Depth", duration: "10h" },
+            { videoId: "CgkZ7MvWUAA", title: "React Full Course for free", duration: "4h" },
+            { videoId: "k7o9R6eaSes", title: "Next.js Full Tutorial - Beginner to Advanced", duration: "7h" },
+            { videoId: "oUmVFHlwZsI", title: "MASTER Angular in 90 Minutes with This Crash Course", duration: "1.5h" },
             { videoId: "4UZrsTqkcW4", title: "JavaScript DOM Manipulation", duration: "6h" }
         ]
     },
     {
         topic: "Artificial Intelligence",
         courses: [
-            { videoId: "aircAruvnKk", title: "How LLMs Work", duration: "25m" },
-            { videoId: "Z6nkEZyXS9A", title: "Python for AI & ML", duration: "15h" },
-            { videoId: "766q0_9S87c", title: "RAG Systems Explained", duration: "1h" },
-            { videoId: "8O6vL9nO0lM", title: "Fine-tuning Small Models", duration: "45m" },
-            { videoId: "T-D1KVIuvjA", title: "OpenAI API Crash Course", duration: "2h" }
+            { videoId: "5NgNicANyqM", title: "Harvard CS50’s Artificial Intelligence with Python Full University Course", duration: "12h" },
+            { videoId: "NWONeJKn6kc", title: "Machine Learning Course for Beginners", duration: "10h" },
+            { videoId: "sVcwVQRHIc8", title: "Learn RAG From Scratch – Python AI Tutorial from a LangChain Engineer", duration: "2h" },
+            { videoId: "ygXn5nV5qFc", title: "Python for AI - Full Beginner Course", duration: "5h" },
+            { videoId: "aircAruvnKk", title: "How LLMs Work", duration: "25m" }
         ]
     },
     {
@@ -66,131 +66,81 @@ const RECOMMENDATIONS: RecommendedSection[] = [
         courses: [
             { videoId: "fBNz5xF-Kx4", title: "Node.js Professional Guide", duration: "18h" },
             { videoId: "pTFZFxd4hOI", title: "System Design Essentials", duration: "5h" },
-            { videoId: "X8e9V_v_e_g", title: "Microservices with Go", duration: "9h" },
+            { videoId: "o8FZ_rN26oo", title: "Microservices with Go", duration: "3h" },
             { videoId: "HXV3zeQKqGY", title: "PostgreSQL for Developers", duration: "7h" },
-            { videoId: "G0HViJAt9sY", title: "Redis Mastery Course", duration: "3h" }
+            { videoId: "XCsS_NVAa1g", title: "Redis Mastery Course", duration: "1h" }
         ]
     },
     {
         topic: "DevOps & Cloud",
         courses: [
-            { videoId: "3c-iBn7E97M", title: "Docker Containerization", duration: "4h" },
-            { videoId: "X48VuDVv0do", title: "Kubernetes for Beginners", duration: "10h" },
-            { videoId: "Z3Sls-OqVfU", title: "AWS Cloud Practitioner", duration: "14h" },
-            { videoId: "7XmCdf-it08", title: "Terraform Infrastructure as Code", duration: "6h" },
-            { videoId: "R8_veKoY-o", title: "CI/CD Pipelines with GitHub Actions", duration: "3h" }
+            { videoId: "RqTEHSBrYFw", title: "Docker Containerization", duration: "4h" },
+            { videoId: "kTp5xUtcalw", title: "Kubernetes for Beginners", duration: "4h" },
+            { videoId: "k1RI5locZE4", title: "AWS full course", duration: "10h" },
+            { videoId: "7xngnjfIlK4", title: "Terraform Infrastructure as Code", duration: "2h" },
+            { videoId: "Xwpi0ITkL3U", title: "Complete GitHub Actions Course - From BEGINNER to PRO", duration: "3h" }
         ]
     },
     {
         topic: "Mobile App Development",
         courses: [
-            { videoId: "VqUizRj_v_w", title: "React Native Masterclass", duration: "20h" },
-            { videoId: "VPvVD8t02U8", title: "Flutter Full Course 2025", duration: "12h" },
-            { videoId: "O9c-C5XW-O0", title: "SwiftUI for iOS Devs", duration: "8h" },
-            { videoId: "V0_MIsEskP4", title: "Android Development with Kotlin", duration: "15h" },
-            { videoId: "f_XoMTo_u_k", title: "Expo & Native Wind", duration: "2h" }
+            { videoId: "sm5Y7Vtuihg", title: "React Native Masterclass", duration: "4h" },
+            { videoId: "3kaGC_DrUnw", title: "Flutter Full Course 2025", duration: "4h" },
+            { videoId: "b1oC7sLIgpI", title: "SwiftUI for iOS Devs", duration: "11h" },
+            { videoId: "dzUc9vrsldM", title: "Android Development with Kotlin crash course", duration: "3h" },
+            { videoId: "rIYzLhkG9TA", title: "React Native Full 8 Hours Course (Expo, Expo Router, Supabase)", duration: "8h" }
         ]
     },
     {
         topic: "Cybersecurity & Hacking",
         courses: [
-            { videoId: "3Kq1MIfTWCE", title: "Ethical Hacking 101", duration: "10h" },
-            { videoId: "6bbK8AnvW_E", title: "Metasploit Crash Course", duration: "4h" },
-            { videoId: "9S_jFz_Y_iM", title: "Web Penetration Testing", duration: "7h" },
-            { videoId: "iL66hNMTIio", title: "Network Security Fundamentals", duration: "5h" },
-            { videoId: "O6T_z_H_J4M", title: "Active Directory Hacking", duration: "8h" }
+            { videoId: "dz7Ntp7KQGA", title: "Ethical Hacking Full Course", duration: "10h" },
+            { videoId: "xuYZNJCvHgQ", title: "Metasploit Crash Course", duration: "27m" },
+            { videoId: "2_lswM1S264", title: "Web Penetration Testing", duration: "2h" },
+            { videoId: "NIRXtMg-0z8", title: "Network Security Fundamentals", duration: "1h" },
+            { videoId: "o8BsouyIcOc", title: "Active Directory Hacking", duration: "3h" }
         ]
     },
     {
         topic: "Data Science & Analysis",
         courses: [
-            { videoId: "LHBE6Q9XlzI", title: "Pandas for Data Science", duration: "6h" },
-            { videoId: "7onO-dAnD_s", title: "SQL for Data Analysts", duration: "12h" },
-            { videoId: "vD7OnlDOnS0", title: "Statstics Mastery", duration: "10h" },
-            { videoId: "GPV_v_X_e_g", title: "PowerBI Full Course", duration: "8h" },
-            { videoId: "Xv8fV_v_v_v", title: "Tableau for Visualization", duration: "5h" }
+            { videoId: "gtjxAH8uaP0", title: "Pandas for Data Science", duration: "5h" },
+            { videoId: "7mz73uXD9DA", title: "SQL for Data Analysts", duration: "4h" },
+            { videoId: "xPh5ihBWang", title: "Data science full course", duration: "12h" },
+            { videoId: "FwjaHCVNBWA", title: "PowerBI Full Course", duration: "8h" },
+            { videoId: "j8FSP8XuFyk", title: "Tableau crash course", duration: "1h" }
         ]
     },
     {
         topic: "UI/UX & Design Systems",
         courses: [
-            { videoId: "jwMm9Y_y_kM", title: "Figma UI/UX Design", duration: "15h" },
-            { videoId: "X8vX_v_v_v_v", title: "Design Systems with Storybook", duration: "6h" },
-            { videoId: "V_v_v_v_v_v_v", title: "Webflow for Designers", duration: "10h" },
-            { videoId: "Y_v_v_v_v_v_v", title: "Typography Masterclass", duration: "3h" },
-            { videoId: "Z_v_v_v_v_v_v", title: "Color Theory for UX", duration: "2h" }
-        ]
-    },
-    {
-        topic: "Product Management",
-        courses: [
-            { videoId: "vD_v_v_v_v_v", title: "Product Strategy Frameworks", duration: "4h" },
-            { videoId: "X_v_v_v_v_v_v", title: "Agile & Scrum for PMs", duration: "5h" },
-            { videoId: "W_v_v_v_v_v_v", title: "Market Research for Tech", duration: "3h" },
-            { videoId: "R_v_v_v_v_v_v", title: "A/B Testing Experiments", duration: "2h" },
-            { videoId: "Q_v_v_v_v_v_v", title: "Product Analytics (Mixpanel)", duration: "4h" }
-        ]
-    },
-    {
-        topic: "Rust Programming",
-        courses: [
-            { videoId: "zF3A_v_v_v_v", title: "Rust for Systems Dev", duration: "12h" },
-            { videoId: "A_v_v_v_v_v_v", title: "Rust Web Development (Axum)", duration: "6h" },
-            { videoId: "B_v_v_v_v_v_v", title: "Low-level Optimization", duration: "8h" },
-            { videoId: "C_v_v_v_v_v_v", title: "Concurrent Programming", duration: "5h" },
-            { videoId: "D_v_v_v_v_v_v", title: "Embedded Rust Guide", duration: "4h" }
-        ]
-    },
-    {
-        topic: "Computer Science Bases",
-        courses: [
-            { videoId: "8hly31xK_v_v", title: "Data Structures & Algos", duration: "20h" },
-            { videoId: "E_v_v_v_v_v_v", title: "Operating Systems Level 1", duration: "15h" },
-            { videoId: "F_v_v_v_v_v_v", title: "Database Internals", duration: "12h" },
-            { videoId: "H_v_v_v_v_v_v", title: "Compiler Design Guide", duration: "10h" },
-            { videoId: "I_v_v_v_v_v_v", title: "Networking Protocols", duration: "8h" }
+            { videoId: "1EvoteyU6PA", title: "Figma to webflow", duration: "1h" },
+            { videoId: "76u-t6drWFY", title: "UI UX Design Full Course", duration: "12h" },
+            { videoId: "agbh1wbfJt8", title: "Typography Masterclass", duration: "2h" },
+            { videoId: "qSkHRVLcj6U", title: "Design Systems with Storybook", duration: "1h" },
+            { videoId: "3m0TXas0Vjw", title: "Figma UI/UX Design", duration: "6h" }
         ]
     },
     {
         topic: "Game Development",
         courses: [
-            { videoId: "gB1F9_v_v_v", title: "Unity C# Masterclass", duration: "25h" },
-            { videoId: "J_v_v_v_v_v_v", title: "Unreal Engine 5 Blueprints", duration: "18h" },
-            { videoId: "K_v_v_v_v_v_v", title: "Shaders & Visual FX", duration: "6h" },
-            { videoId: "L_v_v_v_v_v_v", title: "2D Physics in Games", duration: "5h" },
-            { videoId: "M_v_v_v_v_v_v", title: "Multiplayer Networking", duration: "10h" }
+            { videoId: "rylaiB2uH2A", title: "C# Masterclass", duration: "12h" },
+            { videoId: "Xw9QEMFInYU", title: "Unreal Engine 5 Blueprints", duration: "3h" },
+            { videoId: "gB1F9G0JXOo", title: "Learn Unity - Beginner's Game Development Tutorial", duration: "7h" },
+            { videoId: "oKbCaj1J6EI", title: "Three.js Shaders (GLSL) Crash Course For Absolute Beginners", duration: "3h" },
+            { videoId: "Fj2DeO31oF4", title: "Multiplayer Tutorial", duration: "1h" }
         ]
     },
     {
         topic: "Blockchain & Web3",
         courses: [
             { videoId: "M576WGiDBdQ", title: "Solidity Smart Contracts", duration: "32h" },
-            { videoId: "vD_v_v_v_v_v_v", title: "DeFi Protocol Architecture", duration: "12h" },
-            { videoId: "X_v_v_v_v_v_v_v", title: "NFT Marketplace Logic", duration: "8h" },
-            { videoId: "Y_v_v_v_v_v_v_v", title: "EVM Internals Deep Dive", duration: "10h" },
-            { videoId: "Z_v_v_v_v_v_v_v", title: "ZK-Proofs and Rollups", duration: "6h" }
+            { videoId: "jcgfQEbptdo", title: "Blockchain full course", duration: "12h" },
+            { videoId: "Wn_Kb3MR_cU", title: "Build and Deploy a Modern Web 3.0 Blockchain App", duration: "3h" },
+            { videoId: "DRZogmD647U", title: "Advanced Web3 Security Coursetion", duration: "10h" },
+            { videoId: "jYEqoIeAoBg", title: "Web3 Developer in 2024 Roadmap: Solidity, Smart Contract, and Blockchain Development ", duration: "7h" }
         ]
     },
-    {
-        topic: "Soft Skills for Engineers",
-        courses: [
-            { videoId: "N_v_v_v_v_v_v", title: "Technical Communication", duration: "3h" },
-            { videoId: "O_v_v_v_v_v_v", title: "Architecture Decision Records", duration: "2h" },
-            { videoId: "P_v_v_v_v_v_v", title: "Engineering Leadership", duration: "5h" },
-            { videoId: "R_v_v_v_v_v_v", title: "Negotiating Tech Debt", duration: "2h" },
-            { videoId: "S_v_v_v_v_v_v", title: "Design Docs for Teams", duration: "3h" }
-        ]
-    },
-    {
-        topic: "TypeScript Mastery",
-        courses: [
-            { videoId: "gieEQFIfgYc", title: "Advanced TS Types", duration: "1h" },
-            { videoId: "T_v_v_v_v_v_v", title: "Utility Types Cookbook", duration: "2h" },
-            { videoId: "U_v_v_v_v_v_v", title: "TS in Large Workspaces", duration: "4h" },
-            { videoId: "V_v_v_v_v_v_v", title: "Generics Mastery Guide", duration: "3h" },
-            { videoId: "X_v_v_v_v_v_v", title: "TS Design Patterns", duration: "5h" }
-        ]
-    }
 ];
 
 export default function ExplorePage() {
