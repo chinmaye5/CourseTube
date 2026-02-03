@@ -136,6 +136,10 @@ export default function Profile() {
                                 <Play className="w-5 h-5" />
                                 <span className="font-semibold">Course Player</span>
                             </Link>
+                            <Link href="/explore" className="flex items-center space-x-2 text-foreground hover:text-indigo-400 transition-colors">
+                                <TrendingUp className="w-5 h-5" />
+                                <span className="font-semibold">Explore</span>
+                            </Link>
                         </div>
 
                         <div className="flex items-center space-x-4">

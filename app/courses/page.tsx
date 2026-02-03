@@ -21,7 +21,8 @@ import {
     Menu,
     X,
     Home,
-    BookOpen
+    BookOpen,
+    TrendingUp
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -137,7 +138,7 @@ export default function YouTubeCoursePlayer() {
                 const course = data.courses.find((c: any) => c.videoId === videoId);
 
                 if (course && course.progress) {
-                    console.log('📥 Loaded progress from MongoDB for video:', videoId, course.progress);
+                    console.log('Loaded progress from MongoDB for video:', videoId, course.progress);
                     // Update progress state with MongoDB data
                     setProgress(prev => ({
                         ...prev,
@@ -202,7 +203,7 @@ export default function YouTubeCoursePlayer() {
             });
 
             if (response.ok) {
-                console.log('💾 Progress saved to database');
+                console.log('Progress saved to database');
             }
         } catch (error) {
             console.error('Error saving progress:', error);
@@ -331,7 +332,7 @@ export default function YouTubeCoursePlayer() {
             // Set current chapter from progress if it exists
             if (progress[idToUse]) {
                 const resumeChapter = progress[idToUse].lastWatchedChapter || 0;
-                console.log('🎯 Will resume from chapter:', resumeChapter);
+                console.log('Will resume from chapter:', resumeChapter);
                 setCurrentChapter(resumeChapter);
                 currentChapterRef.current = resumeChapter;
 
@@ -351,7 +352,7 @@ export default function YouTubeCoursePlayer() {
         if (!playingVideoId || !window.YT) return;
 
         if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
-            console.log('🔄 Loading next video:', playingVideoId);
+            console.log('Loading next video:', playingVideoId);
             playerRef.current.loadVideoById(playingVideoId);
             return;
         }
@@ -384,7 +385,7 @@ export default function YouTubeCoursePlayer() {
                 if (isPlaylist) {
                     // For playlists, we already set the correct videoId in handleFetchChapters
                 } else {
-                    console.log('▶️ Resuming single video from chapter', lastChapter);
+                    console.log('Resuming single video from chapter', lastChapter);
                     playerRef.current.seekTo(chaps[lastChapter].timestamp, true);
                     setCurrentChapter(lastChapter);
                 }
@@ -409,7 +410,7 @@ export default function YouTubeCoursePlayer() {
             const chaps = chaptersRef.current;
 
             if (isPlaylist) {
-                console.log('🏁 Video ended, auto-advancing from chapter:', currentChap);
+                console.log('Video ended, auto-advancing from chapter:', currentChap);
                 // Auto-mark as completed
                 markChapterCompleted(currentChap, true);
 
@@ -588,6 +589,10 @@ export default function YouTubeCoursePlayer() {
                             <Link href="/profile" className="flex items-center space-x-2 text-foreground hover:text-indigo-400 transition-colors">
                                 <BookOpen className="w-5 h-5" />
                                 <span className="font-semibold hidden sm:inline">My Courses</span>
+                            </Link>
+                            <Link href="/explore" className="flex items-center space-x-2 text-foreground hover:text-indigo-400 transition-colors">
+                                <TrendingUp className="w-5 h-5" />
+                                <span className="font-semibold hidden sm:inline">Explore</span>
                             </Link>
                         </div>
 
