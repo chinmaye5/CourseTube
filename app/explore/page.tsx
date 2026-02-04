@@ -17,10 +17,12 @@ import {
     Star,
     Layout,
     ChevronLeft,
-    Lightbulb
+    Lightbulb,
+    BarChart3
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { ADMIN_EMAIL } from '@/lib/constants';
+import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 
 interface Course {
     videoId: string;
@@ -144,6 +146,7 @@ const RECOMMENDATIONS: RecommendedSection[] = [
 ];
 
 export default function ExplorePage() {
+    const { user } = useUser();
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -209,6 +212,12 @@ export default function ExplorePage() {
                         <div className="flex items-center space-x-4">
                             <ThemeToggle />
                             <SignedIn>
+                                {user?.emailAddresses.some(e => e.emailAddress === ADMIN_EMAIL) && (
+                                    <Link href="/admin" className="px-4 py-2 text-indigo-500 hover:text-indigo-400 transition-colors font-bold flex items-center gap-1">
+                                        <BarChart3 className="w-4 h-4" />
+                                        Admin
+                                    </Link>
+                                )}
                                 <Link href="/profile" className="px-4 py-2 text-slate-500 hover:text-foreground transition-colors font-medium">Dashboard</Link>
                                 <UserButton />
                             </SignedIn>

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs'
 import {
   Play,
   BookOpen,
@@ -24,8 +24,10 @@ import {
 import { ThemeToggle } from '@/components/ThemeToggle'
 import CardSwap, { Card } from '@/components/CardSwap';
 import { motion } from 'framer-motion';
+import { ADMIN_EMAIL } from '@/lib/constants';
 
 export default function Home() {
+  const { user } = useUser();
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* Navigation */}
@@ -66,6 +68,15 @@ export default function Home() {
                 </Link>
               </SignedOut>
               <SignedIn>
+                {user?.emailAddresses.some(e => e.emailAddress === ADMIN_EMAIL) && (
+                  <Link
+                    href="/admin"
+                    className="px-4 py-2 text-indigo-500 hover:text-indigo-400 transition-colors font-bold flex items-center gap-1"
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    Admin
+                  </Link>
+                )}
                 <Link
                   href="/profile"
                   className="px-4 py-2 text-slate-500 hover:text-foreground transition-colors font-medium"

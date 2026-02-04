@@ -19,6 +19,7 @@ import {
     X as CloseIcon
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ADMIN_EMAIL } from '@/lib/constants';
 
 interface Course {
     videoId: string;
@@ -140,6 +141,12 @@ export default function Profile() {
                                 <TrendingUp className="w-5 h-5" />
                                 <span className="font-semibold">Explore</span>
                             </Link>
+                            {user?.emailAddresses.some(e => e.emailAddress === ADMIN_EMAIL) && (
+                                <Link href="/admin" className="flex items-center space-x-2 text-indigo-500 hover:text-indigo-400 transition-colors font-bold group">
+                                    <BarChart3 className="w-5 h-5" />
+                                    <span className="font-bold">Admin</span>
+                                </Link>
+                            )}
                         </div>
 
                         <div className="flex items-center space-x-4">
