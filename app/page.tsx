@@ -354,7 +354,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-3">Instant Mapping</h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed px-4">
-                  Our AI scans the content and instantly structures it into a logical, easy-to-follow curriculum.
+                  Our system scans the content and instantly structures it into a logical, easy-to-follow curriculum.
                 </p>
               </div>
 
@@ -498,7 +498,7 @@ export default function Home() {
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-3">Chapter Navigation</h3>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
-                Instantly jump to any topic with our AI-powered chapter extraction. No more scrubbing.
+                Instantly jump to any topic with integrated chapter navigation. No more scrubbing.
               </p>
               <div className="mt-8 space-y-2">
                 {[0, 1, 2].map((i) => (
