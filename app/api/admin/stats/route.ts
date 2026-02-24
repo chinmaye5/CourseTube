@@ -46,21 +46,41 @@ export async function GET(request: NextRequest) {
             };
         }));
 
-        // Activity data for chart (courses enrolled/accessed per day)
+        // Calculate DAU and MAU
+        const now = new Date();
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        const [dauCount, mauCount] = await Promise.all([
+            collection.distinct('userId', { lastAccessed: { $gte: oneDayAgo } }),
+            collection.distinct('userId', { lastAccessed: { $gte: thirtyDaysAgo } })
+        ]);
+
+        // Activity data for chart (DAU and courses accessed per day)
         const activityData = await collection.aggregate([
             {
                 $group: {
                     _id: {
-                        $dateToString: {
-                            format: "%Y-%m-%d",
-                            date: { $toDate: "$lastAccessed" }
-                        }
+                        date: {
+                            $dateToString: {
+                                format: "%Y-%m-%d",
+                                date: { $toDate: "$lastAccessed" }
+                            }
+                        },
+                        userId: "$userId"
                     },
-                    count: { $sum: 1 }
+                    coursesCount: { $sum: 1 }
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id.date",
+                    dau: { $sum: 1 },
+                    courses: { $sum: "$coursesCount" }
                 }
             },
             { $sort: { "_id": 1 } },
-            { $limit: 14 } // Last 2 weeks
+            { $limit: 30 } // Extended to 30 days for better overview
         ]).toArray();
 
         return NextResponse.json({
@@ -68,11 +88,14 @@ export async function GET(request: NextRequest) {
                 totalUsers: users.length,
                 totalCoursesEnrolled: totalCourses,
                 activeUsers: userStats.filter(u => u.courseCount > 0).length,
+                dau: dauCount.length,
+                mau: mauCount.length,
             },
             userStats: userStats.sort((a, b) => b.courseCount - a.courseCount),
             activityData: activityData.map(item => ({
                 date: item._id,
-                courses: item.count
+                courses: item.courses,
+                dau: item.dau
             }))
         });
     } catch (error) {

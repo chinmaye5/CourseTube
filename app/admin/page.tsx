@@ -55,9 +55,11 @@ interface AdminData {
         totalUsers: number;
         totalCoursesEnrolled: number;
         activeUsers: number;
+        dau: number;
+        mau: number;
     };
     userStats: UserStat[];
-    activityData: { date: string; courses: number }[];
+    activityData: { date: string; courses: number; dau: number }[];
 }
 
 export default function AdminDashboard() {
@@ -158,49 +160,73 @@ export default function AdminDashboard() {
 
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Stats Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-5 shadow-xl relative overflow-hidden group">
                         <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Users size={120} />
+                            <Users size={80} />
                         </div>
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-indigo-500/10 rounded-xl">
-                                <Users className="text-indigo-500 w-6 h-6" />
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-indigo-500/10 rounded-lg">
+                                <Users className="text-indigo-500 w-5 h-5" />
                             </div>
-                            <span className="text-slate-400 font-medium">Total Users</span>
+                            <span className="text-slate-400 text-sm font-medium">Total Users</span>
                         </div>
-                        <h2 className="text-4xl font-bold">{data?.stats.totalUsers}</h2>
-                        <div className="mt-2 text-xs text-emerald-500 flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" /> +{data?.stats.totalUsers} from beginning
-                        </div>
+                        <h2 className="text-3xl font-bold">{data?.stats.totalUsers}</h2>
                     </div>
 
-                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-5 shadow-xl relative overflow-hidden group">
                         <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <BookOpen size={120} />
+                            <BookOpen size={80} />
                         </div>
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-cyan-500/10 rounded-xl">
-                                <BookOpen className="text-cyan-500 w-6 h-6" />
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-cyan-500/10 rounded-lg">
+                                <BookOpen className="text-cyan-500 w-5 h-5" />
                             </div>
-                            <span className="text-slate-400 font-medium">Total Enrollments</span>
+                            <span className="text-slate-400 text-sm font-medium">Enrollments</span>
                         </div>
-                        <h2 className="text-4xl font-bold">{data?.stats.totalCoursesEnrolled}</h2>
-                        <div className="mt-2 text-xs text-slate-400">Total courses added across platform</div>
+                        <h2 className="text-3xl font-bold">{data?.stats.totalCoursesEnrolled}</h2>
                     </div>
 
-                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-5 shadow-xl relative overflow-hidden group border-emerald-500/20">
                         <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <BarChart3 size={120} />
+                            <TrendingUp size={80} />
                         </div>
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-emerald-500/10 rounded-xl">
-                                <BarChart3 className="text-emerald-500 w-6 h-6" />
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-emerald-500/10 rounded-lg">
+                                <TrendingUp className="text-emerald-500 w-5 h-5" />
                             </div>
-                            <span className="text-slate-400 font-medium">Active Users</span>
+                            <span className="text-slate-400 text-sm font-medium">DAU</span>
                         </div>
-                        <h2 className="text-4xl font-bold">{data?.stats.activeUsers}</h2>
-                        <div className="mt-2 text-xs text-emerald-500">Users with at least one course</div>
+                        <h2 className="text-3xl font-bold">{data?.stats.dau}</h2>
+                        <p className="text-[10px] text-emerald-500 mt-1">Daily Active Users</p>
+                    </div>
+
+                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-5 shadow-xl relative overflow-hidden group border-blue-500/20">
+                        <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <BarChart3 size={80} />
+                        </div>
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-blue-500/10 rounded-lg">
+                                <BarChart3 className="text-blue-500 w-5 h-5" />
+                            </div>
+                            <span className="text-slate-400 text-sm font-medium">MAU</span>
+                        </div>
+                        <h2 className="text-3xl font-bold">{data?.stats.mau}</h2>
+                        <p className="text-[10px] text-blue-500 mt-1">Monthly Active Users</p>
+                    </div>
+
+                    <div className="bg-surface-theme border border-border-theme rounded-2xl p-5 shadow-xl relative overflow-hidden group">
+                        <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <ShieldCheck size={80} />
+                        </div>
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-slate-500/10 rounded-lg">
+                                <ShieldCheck className="text-slate-500 w-5 h-5" />
+                            </div>
+                            <span className="text-slate-400 text-sm font-medium">Ever Active</span>
+                        </div>
+                        <h2 className="text-3xl font-bold">{data?.stats.activeUsers}</h2>
+                        <p className="text-[10px] text-slate-500 mt-1">Users with courses</p>
                     </div>
                 </div>
 
@@ -250,6 +276,15 @@ export default function AdminDashboard() {
                                     strokeWidth={3}
                                     fillOpacity={1}
                                     fill="url(#colorCourses)"
+                                    name="Course Interactions"
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="dau"
+                                    stroke="#10b981"
+                                    strokeWidth={3}
+                                    fillOpacity={0}
+                                    name="Active Users (DAU)"
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
