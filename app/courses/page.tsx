@@ -25,6 +25,8 @@ import {
     TrendingUp
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 interface Chapter {
     title: string;
@@ -436,6 +438,69 @@ export default function YouTubeCoursePlayer() {
         }
     };
 
+    const triggerCelebration = (isCourseComplete: boolean, chapterTitle?: string) => {
+        if (isCourseComplete) {
+            toast.success('🎉 GOAL ACHIEVED! COURSE COMPLETED!', {
+                description: `You've mastered: ${videoTitle} 🏆`,
+                duration: 8000,
+                style: {
+                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
+                    color: 'white',
+                    border: 'none',
+                    fontWeight: 'bold',
+                }
+            });
+
+            // Extra big confetti for course completion
+            const end = Date.now() + (3 * 1000);
+            const colors = ['#6366f1', '#06b6d4', '#22c55e', '#f59e0b', '#ec4899'];
+
+            (function frame() {
+                confetti({
+                    particleCount: 12,
+                    angle: 60,
+                    spread: 80,
+                    origin: { x: 0, y: 0.65 },
+                    colors: colors,
+                    scalar: 2.2, // Massive particles
+                    ticks: 200,
+                });
+                confetti({
+                    particleCount: 12,
+                    angle: 120,
+                    spread: 80,
+                    origin: { x: 1, y: 0.65 },
+                    colors: colors,
+                    scalar: 2.2, // Massive particles
+                    ticks: 200,
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        } else {
+            toast.success('Chapter Completed! 🎯', {
+                description: `Great job! Completed: ${chapterTitle || 'current lecture'}`,
+                duration: 4000,
+                style: {
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
+                    color: 'white',
+                    border: 'none',
+                    fontWeight: 'medium',
+                }
+            });
+
+            confetti({
+                particleCount: 250, // More particles
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#6366f1', '#06b6d4', '#22c55e'],
+                scalar: 1.5, // 50% larger particles
+            });
+        }
+    };
+
     const trackProgress = () => {
         if (!playerRef.current || chapters.length === 0) return;
 
@@ -473,6 +538,13 @@ export default function YouTubeCoursePlayer() {
                     ])];
 
                     const progressPercentage = Math.round((newCompletedChapters.length / chapters.length) * 100);
+
+                    // Trigger celebration if new chapters were completed
+                    if (newCompletedChapters.length > videoProgress.completedChapters.length) {
+                        const newlyCompleted = newCompletedChapters.filter(idx => !videoProgress.completedChapters.includes(idx));
+                        const latestChapterIdx = Math.max(...newlyCompleted);
+                        triggerCelebration(progressPercentage === 100, chapters[latestChapterIdx]?.title);
+                    }
 
                     return {
                         ...prev,
@@ -535,6 +607,11 @@ export default function YouTubeCoursePlayer() {
             }
 
             const progressPercentage = Math.round((newCompletedChapters.length / chapters.length) * 100);
+
+            // Trigger gamification effects only on newly completed chapters
+            if (shouldBeCompleted && !isCurrentlyCompleted) {
+                triggerCelebration(progressPercentage === 100, chapters[chapterIndex]?.title);
+            }
 
             return {
                 ...prev,

@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 
@@ -45,6 +46,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster richColors position="top-left" />
             <Analytics />
           </ThemeProvider>
         </body>
