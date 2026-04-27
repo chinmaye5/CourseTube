@@ -105,8 +105,8 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-cyan-500/10 dark:from-indigo-900/20 dark:to-cyan-900/20"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-indigo-500/10 dark:bg-indigo-600/10 blur-[120px] rounded-full"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-cyan-500/5 dark:from-indigo-900/20 dark:to-cyan-900/20"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-indigo-500/5 dark:bg-indigo-600/10 blur-[120px] rounded-full"></div>
 
         <div className="container mx-auto px-6 py-24 md:py-32 relative">
           <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -175,13 +175,13 @@ export default function Home() {
                   delay={4000}
                   pauseOnHover={true}
                 >
-                  <Card className="p-6 bg-slate-900 border-indigo-500/30 overflow-hidden shadow-2xl">
+                  <Card className="p-6 bg-surface-theme dark:bg-slate-900 border-indigo-500/30 overflow-hidden shadow-2xl">
                     <div className="h-full flex flex-col">
                       <div className="h-40 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-lg mb-4 flex items-center justify-center group-hover:scale-105 transition-transform">
                         <Play className="w-16 h-16 text-white/50" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">Mastering Next.js 15</h3>
-                      <p className="text-indigo-100/70 text-sm">Level up your full-stack skills with the latest App Router and Server Actions.</p>
+                      <h3 className="text-xl font-bold text-foreground mb-2">Mastering Next.js 15</h3>
+                      <p className="text-slate-500 dark:text-indigo-100/70 text-sm">Level up your full-stack skills with the latest App Router and Server Actions.</p>
                       <div className="mt-auto flex items-center gap-2">
                         <div className="h-2 flex-1 bg-slate-800 rounded-full overflow-hidden">
                           <div className="h-full bg-indigo-500 w-[65%]" />
@@ -190,13 +190,13 @@ export default function Home() {
                       </div>
                     </div>
                   </Card>
-                  <Card className="p-6 bg-slate-900 border-cyan-500/30 overflow-hidden shadow-2xl">
+                  <Card className="p-6 bg-surface-theme dark:bg-slate-900 border-cyan-500/30 overflow-hidden shadow-2xl">
                     <div className="h-full flex flex-col">
                       <div className="h-40 bg-gradient-to-br from-cyan-600 to-blue-700 rounded-lg mb-4 flex items-center justify-center">
                         <TrendingUp className="w-16 h-16 text-white/50" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">AI Engineering 101</h3>
-                      <p className="text-cyan-100/70 text-sm">Build intelligent apps using LLMs, Vector Databases, and LangChain.</p>
+                      <h3 className="text-xl font-bold text-foreground mb-2">AI Engineering 101</h3>
+                      <p className="text-slate-500 dark:text-cyan-100/70 text-sm">Build intelligent apps using LLMs, Vector Databases, and LangChain.</p>
                       <div className="mt-auto flex items-center gap-2">
                         <div className="h-2 flex-1 bg-slate-800 rounded-full overflow-hidden">
                           <div className="h-full bg-cyan-500 w-[42%]" />
@@ -205,13 +205,13 @@ export default function Home() {
                       </div>
                     </div>
                   </Card>
-                  <Card className="p-6 bg-slate-900 border-emerald-500/30 overflow-hidden shadow-2xl">
+                  <Card className="p-6 bg-surface-theme dark:bg-slate-900 border-emerald-500/30 overflow-hidden shadow-2xl">
                     <div className="h-full flex flex-col">
                       <div className="h-40 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-lg mb-4 flex items-center justify-center">
                         <Award className="w-16 h-16 text-white/50" />
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">System Design Masterclass</h3>
-                      <p className="text-emerald-100/70 text-sm">Learn to architect scalable systems for millions of users.</p>
+                      <h3 className="text-xl font-bold text-foreground mb-2">System Design Masterclass</h3>
+                      <p className="text-slate-500 dark:text-emerald-100/70 text-sm">Learn to architect scalable systems for millions of users.</p>
                       <div className="mt-auto flex items-center gap-2">
                         <div className="h-2 flex-1 bg-slate-800 rounded-full overflow-hidden">
                           <div className="h-full bg-emerald-500 w-[88%]" />
