@@ -701,6 +701,38 @@ export default function Home() {
         </motion.div>
       </div>
 
+      {/* Reach Out Section */}
+      <div className="container mx-auto px-6 py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="bg-surface-theme/40 backdrop-blur-xl border border-border-theme rounded-[3rem] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden relative"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full -mr-20 -mt-20"></div>
+          
+          <div className="relative z-10 max-w-2xl">
+            <h2 className="text-4xl md:text-5xl font-black text-foreground mb-6">
+              Need Help? <span className="text-indigo-500">Reach Out</span> to Us.
+            </h2>
+            <p className="text-xl text-slate-500 dark:text-slate-400 leading-relaxed">
+              Have questions about how to use CourseTube or want to suggest a feature? We're always here to listen and help you succeed.
+            </p>
+          </div>
+
+          <div className="relative z-10">
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-3 px-10 py-5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl font-bold text-lg transition-all shadow-xl shadow-indigo-500/20 group whitespace-nowrap"
+            >
+              Contact Support
+              <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+
       {/* Footer */}
       <footer className="border-t border-border-theme bg-surface-theme py-12 transition-colors duration-300">
         <div className="container mx-auto px-6">
