@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import CardSwap, { Card } from '@/components/CardSwap';
+import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import { ADMIN_EMAIL } from '@/lib/constants';
 
@@ -734,26 +735,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-border-theme bg-surface-theme py-12 transition-colors duration-300">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20">
-                <img
-                  src="/logo.png"
-                  alt="CourseTube Logo"
-                  className="w-6 h-6 object-contain"
-                />
-              </div>
-              <span className="text-xl font-bold text-foreground">CourseTube</span>
-            </div>
-            <div className="text-center md:text-right">
-              <p className="text-slate-500 dark:text-slate-400 mb-2">© 2025 CourseTube. All rights reserved.</p>
-              <p className="text-sm text-slate-500">Chinmaye HG</p>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

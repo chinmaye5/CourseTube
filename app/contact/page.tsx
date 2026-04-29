@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Send, Mail, User, MessageSquare, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import Footer from '@/components/Footer';
 
 export default function ContactPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -192,6 +193,7 @@ export default function ContactPage() {
                     </motion.div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

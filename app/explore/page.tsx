@@ -23,6 +23,7 @@ import {
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ADMIN_EMAIL } from '@/lib/constants';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
+import Footer from '@/components/Footer';
 
 interface Course {
     videoId: string;
@@ -423,9 +424,7 @@ export default function ExplorePage() {
                 )}
             </main>
 
-            <footer className="border-t border-border-theme py-12 text-center text-slate-500 text-sm">
-                <p>© 2025 CourseTube • Built for Lifelong Learners</p>
-            </footer>
+            <Footer />
         </div>
     );
 }
