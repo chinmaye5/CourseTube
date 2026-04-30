@@ -128,6 +128,40 @@ function formatTime(milliseconds: number): string {
     }
 }
 
+function extractVideoLength(html: string): number {
+    const match = html.match(/"lengthSeconds":"(\d+)"/);
+    if (match && match[1]) {
+        return parseInt(match[1], 10);
+    }
+    return 0;
+}
+
+function generateDummyChapters(lengthSeconds: number, videoId: string): Chapter[] {
+    const chapters: Chapter[] = [];
+    if (lengthSeconds <= 0) return chapters;
+
+    let interval = 300; // 5 minutes by default
+    if (lengthSeconds >= 1800) { // 30 minutes or more
+        interval = 600; // 10 minutes
+    }
+
+    let currentTime = 0;
+    let chapterIndex = 1;
+
+    while (currentTime < lengthSeconds) {
+        chapters.push({
+            title: `Chapter ${chapterIndex}`,
+            time: formatTime(currentTime * 1000),
+            url: `https://youtube.com/watch?v=${videoId}&t=${currentTime}`,
+            videoId: videoId
+        });
+        currentTime += interval;
+        chapterIndex++;
+    }
+
+    return chapters;
+}
+
 async function fetchVideoTitle(videoId: string, fallbackHtml: string, fallbackData: any): Promise<string> {
     try {
         // Method 1: Use OEmbed (Most reliable)
@@ -215,6 +249,13 @@ export async function POST(request: NextRequest) {
         } else {
             chapters = extractChapters(data);
             title = await fetchVideoTitle(videoId, html, data);
+            
+            if (chapters.length === 0) {
+                const lengthSeconds = extractVideoLength(html);
+                if (lengthSeconds > 0) {
+                    chapters = generateDummyChapters(lengthSeconds, videoId);
+                }
+            }
         }
 
         return NextResponse.json({

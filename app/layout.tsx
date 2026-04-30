@@ -14,14 +14,14 @@ export const metadata = {
   icons: {
     icon: [
       {
-        url: '/logo.png',
-        href: '/logo.png',
+        url: '/newlogo.png',
+        href: '/newlogo.png',
       },
     ],
     apple: [
       {
-        url: '/logo.png',
-        href: '/logo.png',
+        url: '/newlogo.png',
+        href: '/newlogo.png',
       },
     ],
   },
@@ -36,7 +36,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <head>
-          <link rel="icon" href="/logo.png" />
+          <link rel="icon" href="/newlogo.png" />
         </head>
         <body className={inter.className}>
           <ThemeProvider

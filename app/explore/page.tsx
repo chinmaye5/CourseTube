@@ -205,7 +205,7 @@ export default function ExplorePage() {
                     <div className="flex justify-between items-center">
                         <Link href="/" className="flex items-center space-x-2">
                             <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20">
-                                <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+                                <img src="/newlogo.png" alt="Logo" className="w-6 h-6 object-contain" />
                             </div>
                             <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">CourseTube</span>
                         </Link>

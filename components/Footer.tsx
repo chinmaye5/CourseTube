@@ -13,7 +13,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center space-x-2 mb-6 inline-flex">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20">
                 <img
-                  src="/logo.png"
+                  src="/newlogo.png"
                   alt="CourseTube Logo"
                   className="w-6 h-6 object-contain"
                 />
