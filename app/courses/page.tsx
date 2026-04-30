@@ -367,6 +367,7 @@ export default function YouTubeCoursePlayer() {
                 rel: 0,
                 modestbranding: 1,
                 autoplay: 1,
+                origin: window.location.origin,
             },
             events: {
                 onReady: onPlayerReady,
