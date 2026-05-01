@@ -140,10 +140,7 @@ function generateDummyChapters(lengthSeconds: number, videoId: string): Chapter[
     const chapters: Chapter[] = [];
     if (lengthSeconds <= 0) return chapters;
 
-    let interval = 300; // 5 minutes by default
-    if (lengthSeconds >= 1800) { // 30 minutes or more
-        interval = 600; // 10 minutes
-    }
+    const interval = 300; // 5 minutes by default
 
     let currentTime = 0;
     let chapterIndex = 1;
