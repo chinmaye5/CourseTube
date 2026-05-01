@@ -432,6 +432,18 @@ export default function YouTubeCoursePlayer() {
                         setChapters(newChapters);
                         chaptersRef.current = newChapters;
                         setError('');
+
+                        const savedProgress = progressRef.current[videoIdRef.current];
+                        if (savedProgress && savedProgress.lastWatchedChapter > 0) {
+                            const resumeChapter = savedProgress.lastWatchedChapter;
+                            if (newChapters[resumeChapter]) {
+                                console.log('Resuming auto-generated video from chapter', resumeChapter);
+                                setCurrentChapter(resumeChapter);
+                                currentChapterRef.current = resumeChapter;
+                                playerRef.current.seekTo(newChapters[resumeChapter].timestamp, true);
+                            }
+                        }
+
                         setTimeout(() => {
                             if (videoIdRef.current) saveProgressToDatabase();
                         }, 1000);
@@ -918,8 +930,10 @@ export default function YouTubeCoursePlayer() {
                                     </div>
 
                                     {error && (
-                                        <div className="mt-2 p-2 bg-red-500/10 border border-red-500/50 rounded-lg">
-                                            <p className="text-red-400 text-xs font-medium">❌ {error}</p>
+                                        <div className={`mt-2 p-2 rounded-lg border ${error === 'Generating chapters...' ? 'bg-emerald-500/10 border-emerald-500/50' : 'bg-red-500/10 border-red-500/50'}`}>
+                                            <p className={`text-xs font-medium ${error === 'Generating chapters...' ? 'text-emerald-500' : 'text-red-400'}`}>
+                                                {error === 'Generating chapters...' ? '⏳' : '❌'} {error}
+                                            </p>
                                         </div>
                                     )}
                                 </div>
