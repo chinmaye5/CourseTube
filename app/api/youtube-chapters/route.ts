@@ -129,10 +129,33 @@ function formatTime(milliseconds: number): string {
 }
 
 function extractVideoLength(html: string): number {
-    const match = html.match(/"lengthSeconds":"(\d+)"/);
-    if (match && match[1]) {
-        return parseInt(match[1], 10);
+    const match1 = html.match(/"lengthSeconds":"(\d+)"/);
+    if (match1 && match1[1]) return parseInt(match1[1], 10);
+
+    const match2 = html.match(/\\"lengthSeconds\\":\\"(\d+)\\"/);
+    if (match2 && match2[1]) return parseInt(match2[1], 10);
+
+    const match3 = html.match(/"lengthSeconds":(\d+)/);
+    if (match3 && match3[1]) return parseInt(match3[1], 10);
+
+    const metaMatch = html.match(/itemprop="duration" content="PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?"/);
+    if (metaMatch) {
+        const hours = parseInt(metaMatch[1] || '0', 10);
+        const minutes = parseInt(metaMatch[2] || '0', 10);
+        const seconds = parseInt(metaMatch[3] || '0', 10);
+        return hours * 3600 + minutes * 60 + seconds;
     }
+
+    const playerResponseMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
+    if (playerResponseMatch) {
+        try {
+            const playerResponse = JSON.parse(playerResponseMatch[1]);
+            if (playerResponse?.videoDetails?.lengthSeconds) {
+                return parseInt(playerResponse.videoDetails.lengthSeconds, 10);
+            }
+        } catch (e) {}
+    }
+
     return 0;
 }
 
