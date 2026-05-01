@@ -46,6 +46,15 @@ interface ProgressData {
     };
 }
 
+const formatTimeClient = (milliseconds: number): string => {
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    if (hours > 0) {
+        return `${hours}:${String(minutes % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+    }
+    return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+};
 export default function YouTubeCoursePlayer() {
     const { user } = useUser();
     const searchParams = useSearchParams();
@@ -318,7 +327,7 @@ export default function YouTubeCoursePlayer() {
 
                 setPlayerReady(true);
             } else {
-                setError('No lectures found for this course.');
+                setError('Generating chapters...');
                 setChapters([]);
                 if (!data.isPlaylist) {
                     setPlayingVideoId(idToUse);
@@ -400,6 +409,36 @@ export default function YouTubeCoursePlayer() {
     const onPlayerStateChange = (event: any) => {
         if (event.data === window.YT.PlayerState.PLAYING) {
             setIsPlaying(true);
+            
+            if (chaptersRef.current.length === 0 && !isPlaylistCourseRef.current && playerRef.current && typeof playerRef.current.getDuration === 'function') {
+                const duration = playerRef.current.getDuration();
+                if (duration > 0) {
+                    const newChapters: Chapter[] = [];
+                    const interval = 300; // 5 minutes
+                    let currentTime = 0;
+                    let chapterIndex = 1;
+                    while (currentTime < duration) {
+                        newChapters.push({
+                            title: `Chapter ${chapterIndex}`,
+                            time: formatTimeClient(currentTime * 1000),
+                            url: `https://youtube.com/watch?v=${videoIdRef.current}&t=${currentTime}`,
+                            timestamp: currentTime,
+                            videoId: videoIdRef.current
+                        });
+                        currentTime += interval;
+                        chapterIndex++;
+                    }
+                    if (newChapters.length > 0) {
+                        setChapters(newChapters);
+                        chaptersRef.current = newChapters;
+                        setError('');
+                        setTimeout(() => {
+                            if (videoIdRef.current) saveProgressToDatabase();
+                        }, 1000);
+                    }
+                }
+            }
+
             startProgressTracking();
         } else if (event.data === window.YT.PlayerState.PAUSED) {
             setIsPlaying(false);
