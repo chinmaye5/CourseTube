@@ -1003,11 +1003,11 @@ export default function YouTubeCoursePlayer() {
                                             })}
                                         </div>
                                     ) : (
-                                        <div className="flex items-center justify-center h-full p-8">
+                                        <div className="flex h-full items-center justify-center p-8">
                                             <div className="text-center">
-                                                <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                                                <p className="text-gray-400 text-sm">No lectures yet</p>
-                                                <p className="text-gray-500 text-xs mt-1">Add a YouTube URL to get started</p>
+                                                <BookOpen className="mx-auto mb-3 h-10 w-10 text-muted-foreground/60" />
+                                                <p className="text-sm font-medium">No lectures yet</p>
+                                                <p className="mt-1 text-xs text-muted-foreground">Add a YouTube URL to get started</p>
                                             </div>
                                         </div>
                                     )}
@@ -1015,29 +1015,29 @@ export default function YouTubeCoursePlayer() {
 
                                 {/* Progress Summary Footer */}
                                 {chapters.length > 0 && (
-                                    <div className="p-4 border-t border-border-theme bg-background transition-colors duration-300">
+                                    <div className="border-t border-border bg-background p-4">
                                         <div className="mb-3">
-                                            <div className="flex items-center justify-between text-xs mb-1.5">
-                                                <span className="text-slate-500 dark:text-slate-400 font-medium">Your Progress</span>
-                                                <span className="text-indigo-500 dark:text-indigo-400 font-bold">{progressPercentage}%</span>
+                                            <div className="mb-1.5 flex items-center justify-between text-xs">
+                                                <span className="font-medium text-muted-foreground">Your progress</span>
+                                                <span className="font-semibold text-primary">{progressPercentage}%</span>
                                             </div>
-                                            <div className="w-full bg-card-theme rounded-full h-1.5">
+                                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                                                 <div
-                                                    className="bg-gradient-to-r from-indigo-500 to-cyan-500 h-1.5 rounded-full transition-all duration-500"
+                                                    className="h-full rounded-full bg-primary transition-all duration-500"
                                                     style={{ width: `${progressPercentage}%` }}
-                                                ></div>
+                                                />
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                            <div className="bg-surface-theme p-2 rounded border border-border-theme">
-                                                <div className="text-slate-500 mb-0.5">Completed</div>
-                                                <div className="text-foreground font-semibold">
+                                            <div className="rounded-md border border-border bg-card p-2">
+                                                <div className="mb-0.5 text-muted-foreground">Completed</div>
+                                                <div className="font-semibold">
                                                     {videoProgress?.completedChapters.length || 0}/{chapters.length}
                                                 </div>
                                             </div>
-                                            <div className="bg-surface-theme p-2 rounded border border-border-theme">
-                                                <div className="text-slate-500 mb-0.5">Last Watched</div>
-                                                <div className="text-foreground font-semibold">
+                                            <div className="rounded-md border border-border bg-card p-2">
+                                                <div className="mb-0.5 text-muted-foreground">Last watched</div>
+                                                <div className="font-semibold">
                                                     {videoProgress?.timestamp ? new Date(videoProgress.timestamp).toLocaleDateString() : 'Never'}
                                                 </div>
                                             </div>
