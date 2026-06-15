@@ -705,63 +705,59 @@ export default function YouTubeCoursePlayer() {
     }, [playingVideoId, playerReady]);
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300">
-            {/* Top Navigation Bar - Udemy Style */}
-            <nav className="bg-surface-theme/80 backdrop-blur-md border-b border-border-theme sticky top-0 z-50 shadow-lg transition-colors duration-300">
-                <div className="px-6 py-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-6">
-                            <Link href="/" className="flex items-center space-x-2 text-foreground hover:text-indigo-400 transition-colors">
-                                <Home className="w-5 h-5" />
-                                <span className="font-semibold hidden sm:inline">Home</span>
-                            </Link>
-                            <Link href="/profile" className="flex items-center space-x-2 text-foreground hover:text-indigo-400 transition-colors">
-                                <BookOpen className="w-5 h-5" />
-                                <span className="font-semibold hidden sm:inline">My Courses</span>
-                            </Link>
-                            <Link href="/explore" className="flex items-center space-x-2 text-foreground hover:text-indigo-400 transition-colors">
-                                <TrendingUp className="w-5 h-5" />
-                                <span className="font-semibold hidden sm:inline">Explore</span>
-                            </Link>
-                        </div>
+        <div className="min-h-screen bg-background">
+            {/* Top Navigation Bar */}
+            <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+                <div className="flex h-14 items-center justify-between px-4 sm:px-6">
+                    <div className="flex items-center gap-1">
+                        <Link href="/" className="flex items-center gap-2.5 pr-4">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background">
+                                <img src="/newlogo.png" alt="" className="h-5 w-5 object-contain" />
+                            </span>
+                            <span className="hidden text-sm font-semibold tracking-tight sm:inline">CourseTube</span>
+                        </Link>
+                        <Link href="/profile" className="hidden rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:inline-flex">
+                            My courses
+                        </Link>
+                        <Link href="/explore" className="hidden rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:inline-flex">
+                            Explore
+                        </Link>
+                    </div>
 
-                        <div className="flex items-center space-x-4">
-                            {videoTitle && (
-                                <h1 className="text-foreground font-semibold text-sm sm:text-base max-w-md truncate hidden md:block">
-                                    {videoTitle}
-                                </h1>
-                            )}
+                    <div className="flex items-center gap-3">
+                        {videoTitle && (
+                            <h1 className="hidden max-w-xs truncate text-sm font-medium text-foreground lg:block">
+                                {videoTitle}
+                            </h1>
+                        )}
 
-                            {/* Progress Indicator */}
-                            {chapters.length > 0 && (
-                                <div className="flex items-center space-x-3 bg-background px-4 py-2 rounded-lg border border-border-theme">
-                                    <div className="flex items-center space-x-2">
-                                        <BarChart3 className="w-4 h-4 text-indigo-400" />
-                                        <span className="text-sm text-slate-500 dark:text-slate-300 font-medium">{progressPercentage}%</span>
-                                    </div>
-                                    <div className="w-24 bg-card-theme rounded-full h-2">
-                                        <div
-                                            className="bg-gradient-to-r from-indigo-500 to-cyan-500 h-2 rounded-full transition-all duration-500"
-                                            style={{ width: `${progressPercentage}%` }}
-                                        ></div>
-                                    </div>
+                        {chapters.length > 0 && (
+                            <div className="hidden items-center gap-2.5 rounded-md border border-border bg-card px-3 py-1.5 sm:flex">
+                                <BarChart3 className="h-4 w-4 text-primary" />
+                                <span className="text-xs font-medium text-muted-foreground">{progressPercentage}%</span>
+                                <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
+                                    <div
+                                        className="h-full rounded-full bg-primary transition-all duration-500"
+                                        style={{ width: `${progressPercentage}%` }}
+                                    />
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                            <ThemeToggle />
+                        <ThemeToggle />
 
-                            <button
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className="p-2 hover:bg-card-theme rounded-lg transition-colors text-foreground"
-                            >
-                                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            aria-label="Toggle sidebar"
+                        >
+                            {sidebarOpen ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
+                        </button>
                     </div>
                 </div>
             </nav>
 
-            <div className="flex h-[calc(100vh-60px)]">
+            <div className="flex h-[calc(100vh-56px)]">
                 {/* Main Video Area */}
                 <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'mr-0' : 'mr-0'}`}>
                     {/* Video Player */}
@@ -769,26 +765,25 @@ export default function YouTubeCoursePlayer() {
                         {playerReady ? (
                             <div id="youtube-player" className="w-full h-full"></div>
                         ) : chapters.length > 0 ? (
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-indigo-900/20 to-cyan-900/20">
+                            <div className="flex h-full items-center justify-center bg-black">
                                 <div className="text-center">
-                                    <div className="relative">
-                                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-500 border-t-transparent mx-auto mb-4"></div>
-                                        <Play className="w-6 h-6 text-indigo-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                                    </div>
-                                    <p className="text-slate-300 text-lg font-medium">Loading your course...</p>
+                                    <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                                    <p className="text-sm font-medium text-white/70">Loading your course...</p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-indigo-900/10 to-cyan-900/10">
-                                <div className="text-center max-w-md px-6">
-                                    <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/20">
-                                        <Play className="w-12 h-12 text-white ml-1" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-white mb-3">Ready to Learn?</h3>
-                                    <p className="text-slate-400 mb-6">Paste a YouTube URL in the sidebar to start your learning journey</p>
-                                    <div className="flex items-center justify-center space-x-2 text-sm text-slate-500">
-                                        <Star className="w-4 h-4 text-amber-500" />
-                                        <span>Track your progress • Resume anytime • Learn at your pace</span>
+                            <div className="flex h-full items-center justify-center bg-black px-6">
+                                <div className="max-w-md text-center">
+                                    <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                        <Play className="ml-0.5 h-7 w-7" />
+                                    </span>
+                                    <h3 className="mt-6 text-xl font-semibold text-white">Ready to learn?</h3>
+                                    <p className="mt-2 text-sm text-white/60">
+                                        Paste a YouTube video or playlist URL in the sidebar to start your course.
+                                    </p>
+                                    <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/40">
+                                        <Star className="h-3.5 w-3.5" />
+                                        <span>Track progress · Resume anytime · Take notes</span>
                                     </div>
                                 </div>
                             </div>
@@ -797,62 +792,62 @@ export default function YouTubeCoursePlayer() {
 
                     {/* Course Info Bar */}
                     {chapters.length > 0 && chapters[currentChapter] && (
-                        <div className="bg-surface-theme border-t border-border-theme px-6 py-4 transition-colors duration-300">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center space-x-3 mb-2">
-                                        <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20 rounded-full text-xs font-semibold">
+                        <div className="border-t border-border bg-background px-6 py-4">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="min-w-0 flex-1">
+                                    <div className="mb-1.5 flex items-center gap-3">
+                                        <span className="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground">
                                             Lecture {currentChapter + 1} of {chapters.length}
                                         </span>
                                         {videoProgress?.completedChapters.includes(currentChapter) && (
-                                            <span className="flex items-center space-x-1 text-emerald-500 dark:text-emerald-400 text-xs font-medium">
-                                                <CheckCircle2 className="w-4 h-4" />
-                                                <span>Completed</span>
+                                            <span className="flex items-center gap-1 text-xs font-medium text-success">
+                                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                                Completed
                                             </span>
                                         )}
                                     </div>
-                                    <h3 className="text-foreground font-semibold text-lg mb-1">
+                                    <h3 className="truncate text-base font-semibold">
                                         {chapters[currentChapter].title}
                                     </h3>
-                                    <div className="flex items-center space-x-4 text-sm text-slate-500 dark:text-slate-400">
-                                        <span className="flex items-center space-x-1">
-                                            <Clock className="w-4 h-4" />
-                                            <span>{chapters[currentChapter].time}</span>
+                                    <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                            <Clock className="h-3.5 w-3.5" />
+                                            {chapters[currentChapter].time}
                                         </span>
-                                        <span>•</span>
-                                        <span>{videoProgress?.completedChapters.length || 0} of {chapters.length} lectures completed</span>
+                                        <span>·</span>
+                                        <span>{videoProgress?.completedChapters.length || 0} of {chapters.length} completed</span>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-3">
+                                <div className="flex shrink-0 items-center gap-2">
                                     {currentChapter > 0 && (
                                         <button
                                             onClick={() => seekToChapter(currentChapter - 1)}
-                                            className="px-4 py-2 bg-card-theme hover:bg-surface-theme text-foreground rounded-lg transition-colors font-medium border border-border-theme"
+                                            className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
                                         >
                                             Previous
                                         </button>
                                     )}
                                     <button
                                         onClick={() => markChapterCompleted(currentChapter)}
-                                        className={`px-6 py-2 rounded-lg font-semibold transition-all shadow-lg ${videoProgress?.completedChapters.includes(currentChapter)
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                            : 'bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white'
+                                        className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${videoProgress?.completedChapters.includes(currentChapter)
+                                            ? 'bg-success text-white hover:opacity-90'
+                                            : 'border border-border bg-background hover:bg-muted'
                                             }`}
                                     >
                                         {videoProgress?.completedChapters.includes(currentChapter) ? (
-                                            <span className="flex items-center space-x-2">
-                                                <CheckCircle2 className="w-5 h-5" />
-                                                <span>Completed</span>
+                                            <span className="flex items-center gap-2">
+                                                <CheckCircle2 className="h-4 w-4" />
+                                                Completed
                                             </span>
                                         ) : (
-                                            'Mark as Complete'
+                                            'Mark complete'
                                         )}
                                     </button>
                                     {currentChapter < chapters.length - 1 && (
                                         <button
                                             onClick={() => seekToChapter(currentChapter + 1)}
-                                            className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white rounded-lg transition-all font-medium shadow-lg"
+                                            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
                                         >
                                             Next
                                         </button>
@@ -864,29 +859,29 @@ export default function YouTubeCoursePlayer() {
                 </div>
 
                 {/* Sidebar - Course Content & Notes */}
-                <div className={`bg-surface-theme border-l border-border-theme transition-all duration-300 overflow-hidden ${sidebarOpen ? 'w-96' : 'w-0'
+                <div className={`border-l border-border bg-background transition-all duration-300 overflow-hidden ${sidebarOpen ? 'w-96' : 'w-0'
                     }`}>
-                    <div className="h-full flex flex-col">
+                    <div className="flex h-full flex-col">
                         {/* Sidebar Tabs */}
-                        <div className="flex border-b border-border-theme">
+                        <div className="flex border-b border-border">
                             <button
                                 onClick={() => setSidebarTab('chapters')}
-                                className={`flex-1 px-4 py-3 font-semibold transition-colors flex items-center justify-center gap-2 ${sidebarTab === 'chapters'
-                                    ? 'bg-background text-indigo-500 dark:text-indigo-400 border-b-2 border-indigo-500 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-foreground'
+                                className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${sidebarTab === 'chapters'
+                                    ? 'border-b-2 border-primary text-foreground'
+                                    : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
                                     }`}
                             >
-                                <ListOrdered className="w-4 h-4" />
+                                <ListOrdered className="h-4 w-4" />
                                 Chapters
                             </button>
                             <button
                                 onClick={() => setSidebarTab('notes')}
-                                className={`flex-1 px-4 py-3 font-semibold transition-colors flex items-center justify-center gap-2 ${sidebarTab === 'notes'
-                                    ? 'bg-background text-indigo-500 dark:text-indigo-400 border-b-2 border-indigo-500 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-foreground'
+                                className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${sidebarTab === 'notes'
+                                    ? 'border-b-2 border-primary text-foreground'
+                                    : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
                                     }`}
                             >
-                                <StickyNote className="w-4 h-4" />
+                                <StickyNote className="h-4 w-4" />
                                 Notes
                             </button>
                         </div>
@@ -895,44 +890,42 @@ export default function YouTubeCoursePlayer() {
                         {sidebarTab === 'chapters' ? (
                             <>
                                 {/* Sidebar Header */}
-                                <div className="p-4 border-b border-border-theme">
-                                    <h2 className="text-foreground font-bold text-lg mb-2">Course Content</h2>
+                                <div className="border-b border-border p-4">
+                                    <h2 className="mb-2 text-sm font-semibold">Course content</h2>
 
                                     {/* URL Input */}
                                     <div className="space-y-2">
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                value={url}
-                                                onChange={(e) => setUrl(e.target.value)}
-                                                placeholder="Paste YouTube URL here..."
-                                                className="w-full px-3 py-2 bg-background border border-border-theme rounded-lg text-foreground placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm"
-                                                onKeyPress={(e) => e.key === 'Enter' && handleFetchChapters()}
-                                            />
-                                        </div>
+                                        <input
+                                            type="text"
+                                            value={url}
+                                            onChange={(e) => setUrl(e.target.value)}
+                                            placeholder="Paste a YouTube URL..."
+                                            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm outline-none transition-shadow placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
+                                            onKeyPress={(e) => e.key === 'Enter' && handleFetchChapters()}
+                                        />
                                         <button
                                             onClick={() => handleFetchChapters()}
                                             disabled={loading}
-                                            className="w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white rounded-lg font-semibold transition-all shadow-lg shadow-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm"
+                                            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             {loading ? (
                                                 <>
-                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                                    <span>Loading...</span>
+                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                                                    Loading...
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Play className="w-4 h-4" />
-                                                    <span>Load Course</span>
+                                                    <Play className="h-4 w-4" />
+                                                    Load course
                                                 </>
                                             )}
                                         </button>
                                     </div>
 
                                     {error && (
-                                        <div className={`mt-2 p-2 rounded-lg border ${error === 'Generating chapters...' ? 'bg-emerald-500/10 border-emerald-500/50' : 'bg-red-500/10 border-red-500/50'}`}>
-                                            <p className={`text-xs font-medium ${error === 'Generating chapters...' ? 'text-emerald-500' : 'text-red-400'}`}>
-                                                {error === 'Generating chapters...' ? '⏳' : '❌'} {error}
+                                        <div className={`mt-2 rounded-md border p-2 ${error === 'Generating chapters...' ? 'border-success/30 bg-success/5' : 'border-destructive/30 bg-destructive/5'}`}>
+                                            <p className={`text-xs font-medium ${error === 'Generating chapters...' ? 'text-success' : 'text-destructive'}`}>
+                                                {error}
                                             </p>
                                         </div>
                                     )}
@@ -940,17 +933,17 @@ export default function YouTubeCoursePlayer() {
 
                                 {/* Course Stats */}
                                 {chapters.length > 0 && (
-                                    <div className="px-4 py-2 bg-background border-b border-border-theme transition-colors duration-300">
+                                    <div className="border-b border-border px-4 py-3">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="text-center">
-                                                <div className="text-lg font-bold text-foreground">{chapters.length}</div>
-                                                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lectures</div>
+                                                <div className="text-lg font-semibold">{chapters.length}</div>
+                                                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Lectures</div>
                                             </div>
                                             <div className="text-center">
-                                                <div className="text-lg font-bold text-indigo-500 dark:text-indigo-400">
+                                                <div className="text-lg font-semibold text-primary">
                                                     {videoProgress?.completedChapters.length || 0}
                                                 </div>
-                                                <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed</div>
+                                                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Completed</div>
                                             </div>
                                         </div>
                                     </div>
@@ -968,46 +961,41 @@ export default function YouTubeCoursePlayer() {
                                                     <div
                                                         key={index}
                                                         onClick={() => seekToChapter(index)}
-                                                        className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${isCurrent
-                                                            ? 'bg-gradient-to-r from-indigo-600/10 to-cyan-600/10 dark:from-indigo-600/20 dark:to-cyan-600/20 border border-indigo-500 shadow-md'
-                                                            : isCompleted
-                                                                ? 'bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10'
-                                                                : 'bg-background border border-border-theme hover:bg-card-theme hover:border-indigo-500/30'
+                                                        className={`group relative cursor-pointer rounded-lg border p-3 transition-colors ${isCurrent
+                                                            ? 'border-primary/40 bg-primary/5'
+                                                            : 'border-transparent hover:border-border hover:bg-muted/60'
                                                             }`}
                                                     >
-                                                        <div className="flex items-start space-x-3">
+                                                        <div className="flex items-start gap-3">
                                                             {/* Lecture Number / Status Icon */}
-                                                            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-semibold text-xs mt-0.5 ${isCompleted
-                                                                ? 'bg-emerald-500 text-white'
+                                                            <div className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium ${isCompleted
+                                                                ? 'bg-success text-white'
                                                                 : isCurrent
-                                                                    ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/20'
-                                                                    : 'bg-card-theme text-slate-500 dark:text-slate-400 border border-border-theme'
+                                                                    ? 'bg-primary text-primary-foreground'
+                                                                    : 'border border-border bg-muted text-muted-foreground'
                                                                 }`}>
                                                                 {isCompleted ? (
-                                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                                    <CheckCircle2 className="h-3.5 w-3.5" />
                                                                 ) : isCurrent ? (
-                                                                    <Play className="w-3 h-3 ml-0.5" />
+                                                                    <Play className="ml-0.5 h-3 w-3" />
                                                                 ) : (
                                                                     index + 1
                                                                 )}
                                                             </div>
 
-                                                            <div className="flex-1 min-w-0">
-                                                                <h4 className={`font-medium text-sm mb-0.5 line-clamp-2 leading-snug ${isCurrent ? 'text-foreground font-bold' : isCompleted ? 'text-emerald-900 dark:text-emerald-500' : 'text-foreground/90 dark:text-black-500 '
+                                                            <div className="min-w-0 flex-1">
+                                                                <h4 className={`mb-0.5 line-clamp-2 text-sm leading-snug ${isCurrent ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'
                                                                     }`}>
                                                                     {chapter.title}
                                                                 </h4>
-                                                                <div className="flex items-center space-x-2 text-[10px] text-gray-500">
-                                                                    <Clock className="w-3 h-3" />
+                                                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                                                    <Clock className="h-3 w-3" />
                                                                     <span>{chapter.time}</span>
                                                                 </div>
                                                             </div>
 
-                                                            {/* Play Icon on Hover */}
                                                             {!isCurrent && (
-                                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center">
-                                                                    <ChevronRight className="w-4 h-4 text-purple-400" />
-                                                                </div>
+                                                                <ChevronRight className="h-4 w-4 self-center text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                                                             )}
                                                         </div>
                                                     </div>

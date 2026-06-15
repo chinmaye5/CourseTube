@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search,
     TrendingUp,
@@ -10,19 +9,11 @@ import {
     Play,
     Sparkles,
     ChevronRight,
-    Filter,
     Clock,
     Users,
-    ArrowRight,
-    Star,
-    Layout,
-    ChevronLeft,
     Lightbulb,
-    BarChart3
 } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { ADMIN_EMAIL } from '@/lib/constants';
-import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
+import { Navbar } from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 interface Course {
@@ -147,7 +138,6 @@ const RECOMMENDATIONS: RecommendedSection[] = [
 ];
 
 export default function ExplorePage() {
-    const { user } = useUser();
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -198,71 +188,42 @@ export default function ExplorePage() {
     const isSearching = searchQuery.trim() !== '';
 
     return (
-        <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-            {/* Header */}
-            <header className="bg-surface-theme/80 backdrop-blur-md border-b border-border-theme sticky top-0 z-50 shadow-xl transition-colors duration-300">
-                <div className="container mx-auto px-6 py-4">
-                    <div className="flex justify-between items-center">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20">
-                                <img src="/newlogo.png" alt="Logo" className="w-6 h-6 object-contain" />
-                            </div>
-                            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">CourseTube</span>
-                        </Link>
+        <div className="min-h-screen bg-background text-foreground">
+            <Navbar />
 
-                        <div className="flex items-center space-x-4">
-                            <ThemeToggle />
-                            <SignedIn>
-                                {user?.emailAddresses.some(e => e.emailAddress === ADMIN_EMAIL) && (
-                                    <Link href="/admin" className="px-4 py-2 text-indigo-500 hover:text-indigo-400 transition-colors font-bold flex items-center gap-1">
-                                        <BarChart3 className="w-4 h-4" />
-                                        Admin
-                                    </Link>
-                                )}
-                                <Link href="/profile" className="px-4 py-2 text-slate-500 hover:text-foreground transition-colors font-medium">Dashboard</Link>
-                                <UserButton />
-                            </SignedIn>
-                            <SignedOut>
-                                <Link href="/sign-in" className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-lg hover:from-indigo-700 hover:to-cyan-700 transition-all shadow-lg font-semibold">Sign In</Link>
-                            </SignedOut>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main className="pb-20">
+            <main className="pb-24">
                 {/* Hero Search */}
-                <section className="relative py-16 overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.03),transparent_70%)]"></div>
-                    <div className="container mx-auto px-6 relative text-center">
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
-                            <h1 className="text-4xl md:text-5xl font-extrabold mb-8">
-                                What are you <span className="text-indigo-500">learning</span> today?
-                            </h1>
-                            <div className="max-w-2xl mx-auto relative">
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="Search 1,000+ community courses..."
-                                    className="w-full pl-14 pr-6 py-5 bg-surface-theme border border-border-theme rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-xl text-lg"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                        </motion.div>
+                <section className="border-b border-border">
+                    <div className="container mx-auto px-6 py-16 text-center">
+                        <span className="text-sm font-medium text-primary">Explore</span>
+                        <h1 className="mx-auto mt-3 max-w-2xl text-balance text-3xl font-semibold tracking-tight md:text-5xl">
+                            What do you want to learn today?
+                        </h1>
+                        <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
+                            Search trending community courses and curated learning paths across dozens of topics.
+                        </p>
+                        <div className="relative mx-auto mt-8 max-w-2xl">
+                            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder="Search courses, topics, technologies..."
+                                className="h-13 w-full rounded-xl border border-border bg-card py-4 pl-12 pr-4 text-base shadow-sm outline-none transition-shadow placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </section>
 
                 {/* Unified Search Results */}
                 {isSearching && (
-                    <section className="container mx-auto px-6">
-                        <div className="flex items-center justify-between mb-8 pb-4 border-b border-border-theme">
-                            <h2 className="text-2xl font-bold flex items-center gap-2">
-                                <Search className="w-6 h-6 text-indigo-500" />
-                                Search Results for "{searchQuery}"
+                    <section className="container mx-auto px-6 pt-12">
+                        <div className="mb-8 flex items-center justify-between border-b border-border pb-4">
+                            <h2 className="text-xl font-semibold">
+                                Results for <span className="text-primary">&ldquo;{searchQuery}&rdquo;</span>
                             </h2>
-                            <p className="text-slate-500">
-                                Found {searchResults.trending.length + searchResults.recommended.length} matches
+                            <p className="text-sm text-muted-foreground">
+                                {searchResults.trending.length + searchResults.recommended.length} matches
                             </p>
                         </div>
 
@@ -275,58 +236,50 @@ export default function ExplorePage() {
 
                                 {/* Curated Results converted to CourseCard-like display */}
                                 {searchResults.recommended.map((c) => (
-                                    <motion.div
+                                    <Link
                                         key={`${c.videoId}-${c.topic}`}
-                                        whileHover={{ y: -5 }}
-                                        className="group bg-surface-theme/40 backdrop-blur-sm border border-border-theme rounded-2xl overflow-hidden hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all flex flex-col"
+                                        href={`/courses?v=${c.videoId}`}
+                                        className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/40 hover:shadow-md"
                                     >
-                                        <div className="aspect-video relative overflow-hidden">
+                                        <div className="relative aspect-video overflow-hidden bg-muted">
                                             <img
                                                 src={`https://img.youtube.com/vi/${c.videoId}/maxresdefault.jpg`}
                                                 alt={c.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${c.videoId}/0.jpg`;
                                                 }}
                                             />
-                                            <div className="absolute top-3 right-3 px-2 py-1 bg-indigo-500/80 backdrop-blur-md rounded text-white text-[10px] font-bold uppercase tracking-wider">
-                                                Curated: {c.topic}
-                                            </div>
-                                            <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-white text-xs font-medium">
+                                            <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-1.5 py-0.5 text-[11px] font-medium text-background">
                                                 {c.duration}
-                                            </div>
+                                            </span>
                                         </div>
-                                        <div className="p-5 flex-1 flex flex-col">
-                                            <h3 className="font-bold text-lg mb-2 line-clamp-2 min-h-[3.5rem] group-hover:text-indigo-400 transition-colors">
+                                        <div className="flex flex-1 flex-col p-4">
+                                            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-primary">
+                                                <Sparkles className="h-3.5 w-3.5" />
+                                                {c.topic}
+                                            </div>
+                                            <h3 className="line-clamp-2 text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
                                                 {c.title}
                                             </h3>
-                                            <div className="flex items-center gap-4 text-sm text-slate-500 mt-auto pt-4 border-t border-border-theme/50">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Sparkles className="w-4 h-4 text-indigo-400" />
-                                                    <span>Premium Selection</span>
-                                                </div>
-                                            </div>
-                                            <Link
-                                                href={`/courses?v=${c.videoId}`}
-                                                className="mt-5 w-full py-3 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-500 hover:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 group/btn"
-                                            >
-                                                Start Learning
-                                                <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                            </Link>
+                                            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+                                                Start learning
+                                                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                                            </span>
                                         </div>
-                                    </motion.div>
+                                    </Link>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-20 bg-surface-theme/20 rounded-3xl border border-dashed border-border-theme">
-                                <Search className="w-12 h-12 text-slate-500 mx-auto mb-4 opacity-50" />
-                                <h3 className="text-xl font-bold mb-2">No results found</h3>
-                                <p className="text-slate-500">Try searching for a different topic or keyword.</p>
+                            <div className="rounded-xl border border-dashed border-border py-20 text-center">
+                                <Search className="mx-auto mb-4 h-10 w-10 text-muted-foreground/60" />
+                                <h3 className="mb-1.5 text-lg font-semibold">No results found</h3>
+                                <p className="text-sm text-muted-foreground">Try a different topic or keyword.</p>
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    className="mt-6 text-indigo-500 font-bold underline"
+                                    className="mt-6 text-sm font-medium text-primary hover:text-primary-hover"
                                 >
-                                    Clear Search
+                                    Clear search
                                 </button>
                             </div>
                         )}
@@ -335,18 +288,18 @@ export default function ExplorePage() {
 
                 {/* Trending Section - Only visible when NOT searching */}
                 {!isSearching && courses.length > 0 && (
-                    <section className="container mx-auto px-6 mb-20">
-                        <div className="flex items-center gap-3 mb-8">
-                            <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center">
-                                <TrendingUp className="w-5 h-5 text-indigo-500" />
-                            </div>
+                    <section className="container mx-auto px-6 pt-16">
+                        <div className="mb-8 flex items-center gap-3">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/50 text-primary">
+                                <TrendingUp className="h-4.5 w-4.5" />
+                            </span>
                             <div>
-                                <h2 className="text-2xl font-bold">Trending Now</h2>
-                                <p className="text-slate-500 text-sm italic">Most added courses by our community</p>
+                                <h2 className="text-xl font-semibold tracking-tight">Trending now</h2>
+                                <p className="text-sm text-muted-foreground">Most added courses by the community</p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {courses.slice(0, 12).map((course) => (
                                 <CourseCard key={course.videoId} course={course} />
                             ))}
@@ -356,65 +309,55 @@ export default function ExplorePage() {
 
                 {/* Recommendations Section - Only visible when NOT searching */}
                 {!isSearching && (
-                    <section className="container mx-auto px-6">
-                        <div className="flex items-center gap-3 mb-10">
-                            <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center">
-                                <Lightbulb className="w-5 h-5 text-amber-500" />
-                            </div>
+                    <section className="container mx-auto px-6 pt-16">
+                        <div className="mb-10 flex items-center gap-3">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/50 text-primary">
+                                <Lightbulb className="h-4.5 w-4.5" />
+                            </span>
                             <div>
-                                <h2 className="text-2xl font-bold">Curated Paths</h2>
-                                <p className="text-slate-500 text-sm">Hand-picked excellence for every career track</p>
+                                <h2 className="text-xl font-semibold tracking-tight">Curated paths</h2>
+                                <p className="text-sm text-muted-foreground">Hand-picked courses for every track</p>
                             </div>
                         </div>
 
-                        <div className="space-y-16">
-                            {RECOMMENDATIONS.map((section, idx) => (
-                                <div key={section.topic} className="group/section">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-xl font-bold flex items-center gap-2">
-                                            <span className="text-indigo-500">#{idx + 1}</span>
-                                            {section.topic}
-                                        </h3>
-                                        <div className="h-px flex-1 mx-6 bg-gradient-to-r from-border-theme to-transparent opacity-50"></div>
-                                        <button className="text-sm text-indigo-500 font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                                            View All <ChevronRight className="w-4 h-4" />
-                                        </button>
+                        <div className="space-y-14">
+                            {RECOMMENDATIONS.map((section) => (
+                                <div key={section.topic}>
+                                    <div className="mb-5 flex items-center justify-between">
+                                        <h3 className="text-base font-semibold">{section.topic}</h3>
+                                        <div className="mx-6 h-px flex-1 bg-border" />
+                                        <span className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                                            {section.courses.length} courses
+                                        </span>
                                     </div>
 
-                                    <div className="flex gap-6 overflow-x-auto pb-6 no-scrollbar snap-x">
+                                    <div className="scrollbar-thin flex snap-x gap-5 overflow-x-auto pb-4">
                                         {section.courses.map((c) => (
-                                            <div key={c.videoId} className="min-w-[280px] md:min-w-[320px] snap-start">
-                                                <Link
-                                                    href={`/courses?v=${c.videoId}`}
-                                                    className="block group bg-surface-theme/50 border border-border-theme rounded-2xl overflow-hidden hover:border-indigo-500/50 hover:shadow-xl transition-all"
-                                                >
-                                                    <div className="aspect-video relative overflow-hidden">
-                                                        <img
-                                                            src={`https://img.youtube.com/vi/${c.videoId}/hqdefault.jpg`}
-                                                            alt={c.title}
-                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                        />
-                                                        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-                                                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 backdrop-blur-md rounded text-white text-[10px] font-bold">
-                                                            {c.duration}
-                                                        </div>
+                                            <Link
+                                                key={c.videoId}
+                                                href={`/courses?v=${c.videoId}`}
+                                                className="group block min-w-[260px] snap-start overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/40 hover:shadow-md md:min-w-[300px]"
+                                            >
+                                                <div className="relative aspect-video overflow-hidden bg-muted">
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${c.videoId}/hqdefault.jpg`}
+                                                        alt={c.title}
+                                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    />
+                                                    <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-1.5 py-0.5 text-[11px] font-medium text-background">
+                                                        {c.duration}
+                                                    </span>
+                                                </div>
+                                                <div className="p-4">
+                                                    <h4 className="line-clamp-2 h-10 text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
+                                                        {c.title}
+                                                    </h4>
+                                                    <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                        <BookOpen className="h-3.5 w-3.5" />
+                                                        <span>Curated course</span>
                                                     </div>
-                                                    <div className="p-4">
-                                                        <h4 className="font-bold text-sm mb-3 line-clamp-2 h-10 group-hover:text-indigo-400 transition-colors">
-                                                            {c.title}
-                                                        </h4>
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                                                <BookOpen className="w-3.5 h-3.5" />
-                                                                <span>Course</span>
-                                                            </div>
-                                                            <div className="px-3 py-1 bg-indigo-500/10 text-indigo-500 text-[10px] font-bold rounded-full border border-indigo-500/20">
-                                                                Curated
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Link>
-                                            </div>
+                                                </div>
+                                            </Link>
                                         ))}
                                     </div>
                                 </div>
@@ -430,60 +373,47 @@ export default function ExplorePage() {
 }
 
 function CourseCard({ course }: { course: Course }) {
-    return (
-        <motion.div
-            whileHover={{ y: -5 }}
-            className="group bg-surface-theme/40 backdrop-blur-sm border border-border-theme rounded-2xl overflow-hidden hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all flex flex-col"
-        >
-            <div className="aspect-video relative overflow-hidden">
-                {(() => {
-                    const isPlaylist = course.videoId.startsWith('PL');
-                    const thumbnailId = isPlaylist && course.chapters?.[0]?.videoId
-                        ? course.chapters[0].videoId
-                        : course.videoId;
+    const isPlaylist = course.videoId.startsWith('PL');
+    const thumbnailId = isPlaylist && course.chapters?.[0]?.videoId
+        ? course.chapters[0].videoId
+        : course.videoId;
 
-                    return (
-                        <img
-                            src={`https://img.youtube.com/vi/${thumbnailId}/maxresdefault.jpg`}
-                            alt={course.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => {
-                                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${thumbnailId}/hqdefault.jpg`;
-                            }}
-                        />
-                    );
-                })()}
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
-                <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-white text-xs font-medium flex items-center gap-1">
-                    <Play className="w-3 h-3" />
-                    {course.chapters?.length || 0} Lectures
-                </div>
+    return (
+        <Link
+            href={`/courses?v=${course.videoId}`}
+            className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/40 hover:shadow-md"
+        >
+            <div className="relative aspect-video overflow-hidden bg-muted">
+                <img
+                    src={`https://img.youtube.com/vi/${thumbnailId}/maxresdefault.jpg`}
+                    alt={course.title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${thumbnailId}/hqdefault.jpg`;
+                    }}
+                />
+                <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded bg-foreground/80 px-1.5 py-0.5 text-[11px] font-medium text-background">
+                    <Play className="h-3 w-3" />
+                    {course.chapters?.length || 0}
+                </span>
             </div>
 
-            <div className="p-5 flex-1 flex flex-col">
-                <h3 className="font-bold text-lg mb-2 line-clamp-2 min-h-[3.5rem] group-hover:text-indigo-400 transition-colors">
+            <div className="flex flex-1 flex-col p-4">
+                <h3 className="line-clamp-2 min-h-[2.75rem] text-sm font-semibold leading-snug transition-colors group-hover:text-primary">
                     {course.title}
                 </h3>
 
-                <div className="flex items-center gap-4 text-sm text-slate-500 mt-auto pt-4 border-t border-border-theme/50">
-                    <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4" />
-                        <span>{course.userCount} students</span>
-                    </div>
-                    <div className="ml-auto flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>Tracking</span>
-                    </div>
+                <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                        <Users className="h-3.5 w-3.5" />
+                        {course.userCount} students
+                    </span>
+                    <span className="ml-auto flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" />
+                        Tracking
+                    </span>
                 </div>
-
-                <Link
-                    href={`/courses?v=${course.videoId}`}
-                    className="mt-5 w-full py-3 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-500 hover:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 group/btn"
-                >
-                    Start Learning
-                    <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Link>
             </div>
-        </motion.div>
+        </Link>
     );
 }
