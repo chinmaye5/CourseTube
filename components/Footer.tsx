@@ -1,129 +1,104 @@
 import React from 'react';
 import Link from 'next/link';
-import { Twitter, Github, MessageSquare, Youtube, Heart, Mail, MapPin } from 'lucide-react';
+import { Twitter, Github, MessageSquare, Youtube } from 'lucide-react';
+
+const productLinks = [
+  { label: 'Explore library', href: '/explore' },
+  { label: 'Course player', href: '/courses' },
+  { label: 'Features', href: '/#features' },
+];
+
+const resourceLinks = [
+  { label: 'Community', href: '#' },
+  { label: 'Help center', href: '#' },
+  { label: 'Blog', href: '#' },
+  { label: 'Contact us', href: '/contact' },
+];
+
+const socials = [
+  { label: 'Twitter', href: 'https://twitter.com', icon: Twitter },
+  { label: 'GitHub', href: 'https://github.com', icon: Github },
+  { label: 'Discord', href: 'https://discord.com', icon: MessageSquare },
+  { label: 'YouTube', href: 'https://youtube.com', icon: Youtube },
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-surface-theme border-t border-border-theme pt-16 pb-8 transition-colors duration-300">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
-
-          {/* Brand Column */}
-          <div className="lg:col-span-4">
-            <Link href="/" className="flex items-center space-x-2 mb-6 inline-flex">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20">
-                <img
-                  src="/newlogo.png"
-                  alt="CourseTube Logo"
-                  className="w-6 h-6 object-contain"
-                />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-                CourseTube
+    <footer className="border-t border-border bg-surface-muted-theme">
+      <div className="container mx-auto px-6 py-16">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-12 md:gap-8">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-5">
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background">
+                <img src="/newlogo.png" alt="" className="h-5 w-5 object-contain" />
               </span>
+              <span className="text-lg font-semibold tracking-tight text-foreground">CourseTube</span>
             </Link>
-            <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed max-w-sm">
-              Transform YouTube videos into structured learning courses with progress tracking, smart notes, and an immersive focus mode.
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              Turn any YouTube video or playlist into a structured course with chapter navigation,
+              progress tracking, and timestamped notes.
             </p>
-            <div className="flex items-center space-x-4">
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center text-slate-500 hover:bg-indigo-500 hover:text-white transition-all duration-300">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="https://github.com" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center text-slate-500 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all duration-300">
-                <Github className="w-5 h-5" />
-              </a>
-              <a href="https://discord.com" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center text-slate-500 hover:bg-[#5865F2] hover:text-white transition-all duration-300">
-                <MessageSquare className="w-5 h-5" />
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center text-slate-500 hover:bg-red-500 hover:text-white transition-all duration-300">
-                <Youtube className="w-5 h-5" />
-              </a>
+            <div className="mt-6 flex items-center gap-2">
+              {socials.map(({ label, href, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                >
+                  <Icon className="h-[18px] w-[18px]" />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Links Column 1 */}
-          <div className="lg:col-span-2 lg:col-start-6">
-            <h3 className="text-foreground font-bold mb-6">Product</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/explore" className="text-slate-500 hover:text-indigo-500 transition-colors">
-                  Explore Library
-                </Link>
-              </li>
-              <li>
-                <Link href="/courses" className="text-slate-500 hover:text-indigo-500 transition-colors">
-                  Course Player
-                </Link>
-              </li>
-              <li>
-                <Link href="/#features" className="text-slate-500 hover:text-indigo-500 transition-colors">
-                  Features
-                </Link>
-              </li>
-
+          {/* Product */}
+          <div className="md:col-span-3 md:col-start-7">
+            <h3 className="text-sm font-semibold text-foreground">Product</h3>
+            <ul className="mt-4 space-y-3">
+              {productLinks.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Links Column 2 */}
-          <div className="lg:col-span-2">
-            <h3 className="text-foreground font-bold mb-6">Resources</h3>
-            <ul className="space-y-4">
-              <li>
-                <a href="#" className="text-slate-500 hover:text-indigo-500 transition-colors">
-                  Community
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-500 hover:text-indigo-500 transition-colors">
-                  Help Center
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-500 hover:text-indigo-500 transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <Link href="/contact" className="text-slate-500 hover:text-indigo-500 transition-colors">
-                  Contact Us
-                </Link>
-              </li>
+          {/* Resources */}
+          <div className="md:col-span-3">
+            <h3 className="text-sm font-semibold text-foreground">Resources</h3>
+            <ul className="mt-4 space-y-3">
+              {resourceLinks.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
-
-          {/* Links Column 3 */}
-          <div className="lg:col-span-3">
-            <h3 className="text-foreground font-bold mb-6">Get in Touch</h3>
-            <ul className="space-y-4 mb-6">
-              <li className="flex items-start gap-3 text-slate-500">
-                <Mail className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-                <span>chinmaye115@gmail.com</span>
-              </li>
-              <li className="flex items-start gap-3 text-slate-500">
-                <MapPin className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-                <span>karnataka<br />india</span>
-              </li>
-            </ul>
-          </div>
-
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-border-theme flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-slate-500 text-sm text-center md:text-left">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
+          <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} CourseTube. All rights reserved.
-          </div>
-
-          <div className="flex items-center space-x-6 text-sm text-slate-500">
-            <Link href="/privacy" className="hover:text-indigo-500 transition-colors">
-              Privacy Policy
+          </p>
+          <div className="flex items-center gap-6 text-sm">
+            <Link href="/privacy" className="text-muted-foreground transition-colors hover:text-foreground">
+              Privacy
             </Link>
-            <Link href="/terms" className="hover:text-indigo-500 transition-colors">
-              Terms of Service
+            <Link href="/terms" className="text-muted-foreground transition-colors hover:text-foreground">
+              Terms
+            </Link>
+            <Link href="/contact" className="text-muted-foreground transition-colors hover:text-foreground">
+              Contact
             </Link>
           </div>
-
-
         </div>
       </div>
     </footer>
