@@ -92,6 +92,37 @@ function extractChapters(data: any): Chapter[] {
     }
 }
 
+function extractDurationFromRenderer(v: any): string {
+    // Method 1: Direct lengthText.simpleText
+    if (v.lengthText?.simpleText) return v.lengthText.simpleText;
+
+    // Method 2: lengthText.runs format
+    if (v.lengthText?.runs?.[0]?.text) return v.lengthText.runs[0].text;
+
+    // Method 3: thumbnailOverlays (most common in recent YouTube)
+    if (v.thumbnailOverlays && Array.isArray(v.thumbnailOverlays)) {
+        for (const overlay of v.thumbnailOverlays) {
+            const timeStatus = overlay.thumbnailOverlayTimeStatusRenderer;
+            if (timeStatus?.text?.simpleText) return timeStatus.text.simpleText;
+            if (timeStatus?.text?.runs?.[0]?.text) return timeStatus.text.runs[0].text;
+        }
+    }
+
+    // Method 4: lengthSeconds (convert to formatted string)
+    if (v.lengthSeconds) {
+        return formatTime(parseInt(v.lengthSeconds, 10) * 1000);
+    }
+
+    // Method 5: videoInfo runs (sometimes contains duration)
+    if (v.videoInfo?.runs) {
+        for (const run of v.videoInfo.runs) {
+            if (run.text && /^\d+:\d+/.test(run.text)) return run.text;
+        }
+    }
+
+    return '0:00';
+}
+
 function extractPlaylistVideos(data: any): Chapter[] {
     try {
         const videos = data?.contents?.twoColumnBrowseResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents?.[0]?.playlistVideoListRenderer?.contents;
@@ -102,8 +133,8 @@ function extractPlaylistVideos(data: any): Chapter[] {
                 .map((item: any) => {
                     const v = item.playlistVideoRenderer;
                     return {
-                        title: v.title?.runs?.[0]?.text || 'Untitled Video',
-                        time: v.lengthText?.simpleText || '0:00',
+                        title: v.title?.runs?.[0]?.text || v.title?.simpleText || 'Untitled Video',
+                        time: extractDurationFromRenderer(v),
                         url: `https://youtube.com/watch?v=${v.videoId}`,
                         videoId: v.videoId
                     };
@@ -114,6 +145,42 @@ function extractPlaylistVideos(data: any): Chapter[] {
         console.error('Error extracting playlist videos:', err);
         return [];
     }
+}
+
+function extractPlaylistVideosFromHtml(html: string): Chapter[] {
+    const chapters: Chapter[] = [];
+    // Find each playlistVideoRenderer block, then extract fields individually
+    // Use a regex that captures a large chunk after each playlistVideoRenderer key
+    const rendererRegex = /"playlistVideoRenderer":\{/g;
+    let rMatch;
+    while ((rMatch = rendererRegex.exec(html)) !== null) {
+        const startPos = rMatch.index + rMatch[0].length;
+        // Extract a generous chunk (each renderer is typically 1-3KB of JSON)
+        const chunk = html.substring(startPos, startPos + 4000);
+
+        const videoIdMatch = chunk.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+        const titleMatch = chunk.match(/"title":\{(?:"runs":\[\{"text":"([^"]*)"|"simpleText":"([^"]*)")/);
+        const durationMatch = chunk.match(/(?:"lengthText":\{(?:"simpleText":"([^"]+)"|"runs":\[\{"text":"([^"]+)")|"thumbnailOverlayTimeStatusRenderer":\{"text":\{(?:"simpleText":"([^"]+)"|"runs":\[\{"text":"([^"]+)"))/);
+
+        if (videoIdMatch) {
+            const videoId = videoIdMatch[1];
+            const title = titleMatch ? (titleMatch[1] || titleMatch[2] || 'Untitled Video') : 'Untitled Video';
+            const time = durationMatch
+                ? (durationMatch[1] || durationMatch[2] || durationMatch[3] || durationMatch[4] || '0:00')
+                : '0:00';
+
+            // Avoid duplicates
+            if (!chapters.some(c => c.videoId === videoId)) {
+                chapters.push({
+                    title: title.replace(/\\u0026/g, '&').replace(/\\u0027/g, "'").replace(/\\"/g, '"'),
+                    time,
+                    url: `https://youtube.com/watch?v=${videoId}`,
+                    videoId
+                });
+            }
+        }
+    }
+    return chapters;
 }
 
 function formatTime(milliseconds: number): string {
@@ -229,6 +296,100 @@ async function fetchPlaylistTitle(playlistId: string, fallbackHtml: string, fall
     return 'YouTube Playlist Course';
 }
 
+async function fetchVideoDuration(videoId: string): Promise<string> {
+    try {
+        const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+            }
+        });
+        if (!res.ok) return '0:00';
+        const html = await res.text();
+
+        // Try itemprop duration (most reliable, lightweight)
+        const metaMatch = html.match(/itemprop="duration" content="PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?"/);
+        if (metaMatch) {
+            const hours = parseInt(metaMatch[1] || '0', 10);
+            const minutes = parseInt(metaMatch[2] || '0', 10);
+            const seconds = parseInt(metaMatch[3] || '0', 10);
+            return formatTime((hours * 3600 + minutes * 60 + seconds) * 1000);
+        }
+
+        // Fallback: lengthSeconds from page data
+        const lengthMatch = html.match(/"lengthSeconds":"(\d+)"/);
+        if (lengthMatch) {
+            return formatTime(parseInt(lengthMatch[1], 10) * 1000);
+        }
+
+        return '0:00';
+    } catch {
+        return '0:00';
+    }
+}
+
+async function fetchPlaylistFromRSS(playlistId: string): Promise<Chapter[]> {
+    try {
+        const rssUrl = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
+        const res = await fetch(rssUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+            }
+        });
+        if (!res.ok) return [];
+
+        const xml = await res.text();
+        const chapters: Chapter[] = [];
+
+        // Parse XML entries - each <entry> is a video in the playlist
+        const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+        let entryMatch;
+        while ((entryMatch = entryRegex.exec(xml)) !== null) {
+            const entry = entryMatch[1];
+
+            const videoIdMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+            const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
+
+            if (videoIdMatch && titleMatch) {
+                const vid = videoIdMatch[1];
+                const rawTitle = titleMatch[1]
+                    .replace(/&amp;/g, '&')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>');
+
+                chapters.push({
+                    title: rawTitle,
+                    time: '0:00', // Will be filled in batch below
+                    url: `https://youtube.com/watch?v=${vid}`,
+                    videoId: vid
+                });
+            }
+        }
+
+        // Batch fetch durations (process 5 at a time to avoid rate limiting)
+        if (chapters.length > 0) {
+            const BATCH_SIZE = 5;
+            for (let i = 0; i < chapters.length; i += BATCH_SIZE) {
+                const batch = chapters.slice(i, i + BATCH_SIZE);
+                const durations = await Promise.allSettled(
+                    batch.map(ch => fetchVideoDuration(ch.videoId!))
+                );
+                durations.forEach((result, idx) => {
+                    if (result.status === 'fulfilled' && result.value !== '0:00') {
+                        chapters[i + idx].time = result.value;
+                    }
+                });
+            }
+        }
+
+        return chapters;
+    } catch (err) {
+        console.error('RSS feed fetch failed:', err);
+        return [];
+    }
+}
+
 export async function POST(request: NextRequest) {
     try {
         const { videoId, playlistId } = await request.json();
@@ -237,39 +398,83 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Video ID or Playlist ID is required' }, { status: 400 });
         }
 
-        const url = playlistId
-            ? `https://www.youtube.com/playlist?list=${playlistId}`
-            : `https://www.youtube.com/watch?v=${videoId}`;
-
-        const res = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
-        });
-
-        if (!res.ok) {
-            throw new Error(`Failed to fetch YouTube page: ${res.status} ${res.statusText}`);
-        }
-
-        const html = await res.text();
-        const data = extractInitialData(html);
-
-        if (!data) {
-            throw new Error('Could not extract ytInitialData from YouTube page');
-        }
-
         let chapters: Chapter[] = [];
         let title = '';
         let isPlaylist = false;
 
         if (playlistId) {
-            chapters = extractPlaylistVideos(data);
-            title = await fetchPlaylistTitle(playlistId, html, data);
             isPlaylist = true;
+
+            // Attempt 1: Fetch and parse the YouTube playlist HTML page
+            const url = `https://www.youtube.com/playlist?list=${playlistId}`;
+            let html = '';
+            let data: any = null;
+
+            try {
+                const res = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                    }
+                });
+
+                if (res.ok) {
+                    html = await res.text();
+                    data = extractInitialData(html);
+                }
+            } catch (err) {
+                console.error('Failed to fetch playlist page:', err);
+            }
+
+            // Try structured data extraction from ytInitialData
+            if (data) {
+                chapters = extractPlaylistVideos(data);
+                title = await fetchPlaylistTitle(playlistId, html, data);
+            }
+
+            // Fallback 1: Parse HTML directly with regex
+            if (chapters.length === 0 && html) {
+                console.log('ytInitialData extraction failed for playlist, trying HTML regex fallback...');
+                chapters = extractPlaylistVideosFromHtml(html);
+            }
+
+            // Fallback 2: Use YouTube RSS/Atom feed (most reliable, no scraping)
+            if (chapters.length === 0) {
+                console.log('HTML regex fallback failed for playlist, trying RSS feed...');
+                chapters = await fetchPlaylistFromRSS(playlistId);
+            }
+
+            // Set title if we still don't have one
+            if (!title) {
+                if (html) {
+                    title = await fetchPlaylistTitle(playlistId, html, data);
+                } else {
+                    title = 'YouTube Playlist Course';
+                }
+            }
         } else {
-            chapters = extractChapters(data);
+            // Single video handling
+            const url = `https://www.youtube.com/watch?v=${videoId}`;
+            const res = await fetch(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch YouTube page: ${res.status} ${res.statusText}`);
+            }
+
+            const html = await res.text();
+            const data = extractInitialData(html);
+
+            if (data) {
+                chapters = extractChapters(data);
+            }
+
             title = await fetchVideoTitle(videoId, html, data);
-            
+
             if (chapters.length === 0) {
                 const lengthSeconds = extractVideoLength(html);
                 if (lengthSeconds > 0) {

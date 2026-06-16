@@ -52,7 +52,7 @@ export default function RootLayout({
         <head>
           <link rel="icon" href="/newlogo.png" />
         </head>
-        <body className="font-sans antialiased">
+        <body className="font-sans antialiased" suppressHydrationWarning>
           <ThemeProvider
             attribute="data-theme"
             defaultTheme="light"
