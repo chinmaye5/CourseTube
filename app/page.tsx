@@ -235,9 +235,9 @@ function ProductPreview() {
       {/* window bar */}
       <div className="flex items-center gap-2 border-b border-border bg-surface-muted-theme px-4 py-3">
         <div className="flex gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-border" />
-          <span className="h-2.5 w-2.5 rounded-full bg-border" />
-          <span className="h-2.5 w-2.5 rounded-full bg-border" />
+          <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+          <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+          <span className="h-3 w-3 rounded-full bg-[#28c840]" />
         </div>
         <div className="mx-auto flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
           coursetube.app/courses
@@ -273,17 +273,15 @@ function ProductPreview() {
             {chapters.map((c) => (
               <div
                 key={c.title}
-                className={`flex items-center gap-2 rounded-md px-2 py-2 text-xs ${
-                  c.active ? 'bg-primary/10 text-foreground' : 'text-muted-foreground'
-                }`}
+                className={`flex items-center gap-2 rounded-md px-2 py-2 text-xs ${c.active ? 'bg-primary/10 text-foreground' : 'text-muted-foreground'
+                  }`}
               >
                 {c.done ? (
                   <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
                 ) : (
                   <span
-                    className={`h-3.5 w-3.5 shrink-0 rounded-full border ${
-                      c.active ? 'border-primary' : 'border-border'
-                    }`}
+                    className={`h-3.5 w-3.5 shrink-0 rounded-full border ${c.active ? 'border-primary' : 'border-border'
+                      }`}
                   />
                 )}
                 <span className="truncate">{c.title}</span>
