@@ -1,5 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const FETCH_TIMEOUT_MS = 10000; // 10 second timeout per fetch
+const API_ROUTE_TIMEOUT_MS = 25000; // 25 second overall route timeout
+
+function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = FETCH_TIMEOUT_MS): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
+
+// Standard browser-like headers for scraping YouTube pages.
+// Crucially includes a CONSENT cookie - without it, requests from many
+// cloud/datacenter IPs (and most EU-region IPs) get redirected to a
+// cookie-consent page that contains no ytInitialData at all, which makes
+// every downstream parser silently return zero results.
+const YOUTUBE_SCRAPE_HEADERS: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Cookie': 'CONSENT=YES+cb; SOCS=CAI',
+};
+
+// Detects whether the fetched HTML is actually a cookie-consent / "before
+// you continue" wall rather than the real playlist or video page. This is
+// the most common reason scraping silently returns 0 results: the request
+// gets a 200 OK, but the body has no ytInitialData at all.
+function isConsentWallHtml(html: string): boolean {
+    if (!html) return false;
+    if (html.includes('ytInitialData')) return false;
+    return (
+        html.includes('consent.youtube.com') ||
+        html.includes('id="consent-bump"') ||
+        /Before you continue to YouTube/i.test(html) ||
+        html.length < 5000 // real playlist/watch pages are always much larger
+    );
+}
+
 interface Chapter {
     title: string;
     time: string;
@@ -220,7 +256,7 @@ function extractVideoLength(html: string): number {
             if (playerResponse?.videoDetails?.lengthSeconds) {
                 return parseInt(playerResponse.videoDetails.lengthSeconds, 10);
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     return 0;
@@ -253,7 +289,7 @@ async function fetchVideoTitle(videoId: string, fallbackHtml: string, fallbackDa
     try {
         // Method 1: Use OEmbed (Most reliable)
         const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-        const res = await fetch(oembedUrl);
+        const res = await fetchWithTimeout(oembedUrl, {}, 5000);
         if (res.ok) {
             const data = await res.json();
             if (data.title) return data.title;
@@ -298,11 +334,9 @@ async function fetchPlaylistTitle(playlistId: string, fallbackHtml: string, fall
 
 async function fetchVideoDuration(videoId: string): Promise<string> {
     try {
-        const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-            }
-        });
+        const res = await fetchWithTimeout(`https://www.youtube.com/watch?v=${videoId}`, {
+            headers: YOUTUBE_SCRAPE_HEADERS
+        }, 6000);
         if (!res.ok) return '0:00';
         const html = await res.text();
 
@@ -327,17 +361,74 @@ async function fetchVideoDuration(videoId: string): Promise<string> {
     }
 }
 
+// The YouTube playlist page often omits duration on playlistVideoRenderer
+// entries entirely (titles/videoIds are reliable, lengthText/thumbnailOverlays
+// frequently are not). RSS never includes duration either. The only reliable
+// fix is fetching each video's own watch page for its real duration.
+// Doing this for every video in a large playlist would blow the route's
+// timeout, so we:
+//   1) only fetch for chapters that don't already have a real duration
+//   2) cap how many we fetch (rest just keep showing '0:00')
+//   3) run them in small concurrent batches with a shared time budget
+async function enrichChapterDurations(
+    chapters: Chapter[],
+    options: { maxToFetch?: number; concurrency?: number; budgetMs?: number } = {}
+): Promise<Chapter[]> {
+    const { maxToFetch = 60, concurrency = 8, budgetMs = 15000 } = options;
+
+    const needsDuration = chapters
+        .map((c, idx) => ({ c, idx }))
+        .filter(({ c }) => !c.time || c.time === '0:00')
+        .slice(0, maxToFetch);
+
+    if (needsDuration.length === 0) return chapters;
+
+    console.log(`Enriching durations for ${needsDuration.length} video(s) (capped at ${maxToFetch})`);
+
+    const result = [...chapters];
+    const deadline = Date.now() + budgetMs;
+    let cursor = 0;
+
+    async function worker() {
+        while (cursor < needsDuration.length) {
+            if (Date.now() > deadline) return; // stop spawning new fetches once we're out of budget
+            const item = needsDuration[cursor++];
+            if (!item.c.videoId) continue;
+            const duration = await fetchVideoDuration(item.c.videoId);
+            if (duration !== '0:00') {
+                result[item.idx] = { ...result[item.idx], time: duration };
+            }
+        }
+    }
+
+    const workers = Array.from({ length: Math.min(concurrency, needsDuration.length) }, () => worker());
+    await Promise.all(workers);
+
+    return result;
+}
+
 async function fetchPlaylistFromRSS(playlistId: string): Promise<Chapter[]> {
     try {
         const rssUrl = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
-        const res = await fetch(rssUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
-            }
+        console.log('Fetching RSS feed:', rssUrl);
+        const res = await fetchWithTimeout(rssUrl, {
+            headers: YOUTUBE_SCRAPE_HEADERS
         });
-        if (!res.ok) return [];
+        if (!res.ok) {
+            console.log('RSS feed returned status:', res.status);
+            return [];
+        }
 
         const xml = await res.text();
+
+        // The RSS feed only exists for "regular" playlists. For other
+        // playlist types (e.g. auto-generated "Mix" or "Liked videos"),
+        // YouTube returns a 200 with an empty or non-feed body.
+        if (!xml.includes('<feed') && !xml.includes('<entry>')) {
+            console.log('RSS endpoint did not return a valid feed for this playlist (likely an auto-generated or unsupported playlist type)');
+            return [];
+        }
+
         const chapters: Chapter[] = [];
 
         // Parse XML entries - each <entry> is a video in the playlist
@@ -360,28 +451,19 @@ async function fetchPlaylistFromRSS(playlistId: string): Promise<Chapter[]> {
 
                 chapters.push({
                     title: rawTitle,
-                    time: '0:00', // Will be filled in batch below
+                    time: '0:00',
                     url: `https://youtube.com/watch?v=${vid}`,
                     videoId: vid
                 });
             }
         }
 
-        // Batch fetch durations (process 5 at a time to avoid rate limiting)
-        if (chapters.length > 0) {
-            const BATCH_SIZE = 5;
-            for (let i = 0; i < chapters.length; i += BATCH_SIZE) {
-                const batch = chapters.slice(i, i + BATCH_SIZE);
-                const durations = await Promise.allSettled(
-                    batch.map(ch => fetchVideoDuration(ch.videoId!))
-                );
-                durations.forEach((result, idx) => {
-                    if (result.status === 'fulfilled' && result.value !== '0:00') {
-                        chapters[i + idx].time = result.value;
-                    }
-                });
-            }
-        }
+        console.log(`RSS feed returned ${chapters.length} videos`);
+
+        // NOTE: We intentionally skip batch duration fetching here.
+        // Fetching individual video pages for duration is extremely slow
+        // for large playlists and causes the entire request to time out.
+        // Durations will show as '0:00' but the playlist will load.
 
         return chapters;
     } catch (err) {
@@ -401,6 +483,7 @@ export async function POST(request: NextRequest) {
         let chapters: Chapter[] = [];
         let title = '';
         let isPlaylist = false;
+        const debug: Record<string, any> = {};
 
         if (playlistId) {
             isPlaylist = true;
@@ -411,24 +494,64 @@ export async function POST(request: NextRequest) {
             let data: any = null;
 
             try {
-                const res = await fetch(url, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-                        'Accept-Language': 'en-US,en;q=0.9',
-                    }
+                console.log('Fetching playlist page:', url);
+                const res = await fetchWithTimeout(url, {
+                    headers: YOUTUBE_SCRAPE_HEADERS
                 });
+
+                debug.playlistPageStatus = res.status;
 
                 if (res.ok) {
                     html = await res.text();
+                    console.log(`Playlist HTML fetched, length: ${html.length}`);
+                    debug.playlistHtmlLength = html.length;
+
+                    if (isConsentWallHtml(html)) {
+                        console.log('Detected YouTube consent/interstitial wall instead of real playlist page - retrying once');
+                        debug.hitConsentWall = true;
+                        // Retry once with a slightly different UA + explicit consent params,
+                        // in case the first attempt's cookie wasn't honored.
+                        try {
+                            const retryRes = await fetchWithTimeout(`${url}&hl=en&gl=US`, {
+                                headers: {
+                                    ...YOUTUBE_SCRAPE_HEADERS,
+                                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+                                }
+                            });
+                            if (retryRes.ok) {
+                                const retryHtml = await retryRes.text();
+                                if (!isConsentWallHtml(retryHtml)) {
+                                    html = retryHtml;
+                                    console.log(`Retry succeeded, HTML length: ${html.length}`);
+                                    debug.consentWallRetrySucceeded = true;
+                                    debug.playlistHtmlLength = html.length;
+                                } else {
+                                    console.log('Retry still hit a consent wall - this environment\'s outbound IP is likely being challenged by YouTube');
+                                    debug.consentWallRetrySucceeded = false;
+                                }
+                            }
+                        } catch (retryErr) {
+                            console.error('Consent-wall retry failed:', retryErr);
+                            debug.consentWallRetryError = retryErr instanceof Error ? retryErr.message : String(retryErr);
+                        }
+                    }
+
                     data = extractInitialData(html);
+                    console.log('ytInitialData extracted:', !!data);
+                    debug.ytInitialDataFound = !!data;
+                } else {
+                    console.log('Playlist page fetch returned status:', res.status);
                 }
             } catch (err) {
                 console.error('Failed to fetch playlist page:', err);
+                debug.playlistPageFetchError = err instanceof Error ? err.message : String(err);
             }
 
             // Try structured data extraction from ytInitialData
             if (data) {
                 chapters = extractPlaylistVideos(data);
+                console.log(`extractPlaylistVideos returned ${chapters.length} videos`);
+                debug.structuredExtractionCount = chapters.length;
                 title = await fetchPlaylistTitle(playlistId, html, data);
             }
 
@@ -436,12 +559,15 @@ export async function POST(request: NextRequest) {
             if (chapters.length === 0 && html) {
                 console.log('ytInitialData extraction failed for playlist, trying HTML regex fallback...');
                 chapters = extractPlaylistVideosFromHtml(html);
+                console.log(`HTML regex fallback returned ${chapters.length} videos`);
+                debug.htmlRegexFallbackCount = chapters.length;
             }
 
             // Fallback 2: Use YouTube RSS/Atom feed (most reliable, no scraping)
             if (chapters.length === 0) {
                 console.log('HTML regex fallback failed for playlist, trying RSS feed...');
                 chapters = await fetchPlaylistFromRSS(playlistId);
+                debug.rssFallbackCount = chapters.length;
             }
 
             // Set title if we still don't have one
@@ -452,14 +578,23 @@ export async function POST(request: NextRequest) {
                     title = 'YouTube Playlist Course';
                 }
             }
+
+            // The playlist page frequently omits duration on individual
+            // entries (and RSS never has it at all), so backfill missing
+            // durations by visiting each video's own page, capped and
+            // batched so it can't blow the overall route timeout.
+            const missingDurations = chapters.filter(c => !c.time || c.time === '0:00').length;
+            debug.missingDurationsBeforeEnrichment = missingDurations;
+            if (missingDurations > 0) {
+                console.log(`${missingDurations} video(s) missing duration, enriching...`);
+                chapters = await enrichChapterDurations(chapters, { maxToFetch: 60, concurrency: 8, budgetMs: 15000 });
+                debug.missingDurationsAfterEnrichment = chapters.filter(c => !c.time || c.time === '0:00').length;
+            }
         } else {
             // Single video handling
             const url = `https://www.youtube.com/watch?v=${videoId}`;
-            const res = await fetch(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                }
+            const res = await fetchWithTimeout(url, {
+                headers: YOUTUBE_SCRAPE_HEADERS
             });
 
             if (!res.ok) {
@@ -487,7 +622,8 @@ export async function POST(request: NextRequest) {
             chapters,
             title,
             hasChapters: chapters.length > 0,
-            isPlaylist
+            isPlaylist,
+            debug
         });
     } catch (error) {
         console.error('Chapters API Error:', error);

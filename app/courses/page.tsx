@@ -327,9 +327,15 @@ export default function YouTubeCoursePlayer() {
 
                 setPlayerReady(true);
             } else {
-                setError('Generating chapters...');
+                // No chapters returned
                 setChapters([]);
-                if (!data.isPlaylist) {
+                if (data.isPlaylist) {
+                    // For playlists, show a clear error — don't show "Generating chapters..."
+                    // which implies something is still loading
+                    setError('Could not load playlist videos. The playlist may be private, empty, or unavailable. Please check the URL and try again.');
+                } else {
+                    // For single videos without chapters, still show the player
+                    // and let onPlayerStateChange generate dummy chapters from duration
                     setPlayingVideoId(idToUse);
                     setPlayerReady(true);
                 }
@@ -923,10 +929,16 @@ export default function YouTubeCoursePlayer() {
                                     </div>
 
                                     {error && (
-                                        <div className={`mt-2 rounded-md border p-2 ${error === 'Generating chapters...' ? 'border-success/30 bg-success/5' : 'border-destructive/30 bg-destructive/5'}`}>
-                                            <p className={`text-xs font-medium ${error === 'Generating chapters...' ? 'text-success' : 'text-destructive'}`}>
+                                        <div className="mt-2 rounded-md border p-2 border-destructive/30 bg-destructive/5">
+                                            <p className="text-xs font-medium text-destructive">
                                                 {error}
                                             </p>
+                                            <button
+                                                onClick={() => handleFetchChapters()}
+                                                className="mt-2 w-full rounded-md bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
+                                            >
+                                                Try again
+                                            </button>
                                         </div>
                                     )}
                                 </div>
