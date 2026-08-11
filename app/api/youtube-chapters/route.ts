@@ -9,6 +9,43 @@ function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = FE
     return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
 }
 
+// --- In-memory response cache ---
+// Keyed by videoId or playlistId, so a *new* URL/id always goes straight
+// to YouTube. Only repeat requests for an id we've already fetched
+// recently get served from memory. This exists specifically to stop
+// dev-mode page reloads (and polling endpoints) from re-scraping the
+// same playlist on every render, which is what trips YouTube's
+// per-IP rate limiting in short bursts.
+//
+// Lives only for the lifetime of the running process/serverless
+// instance - it resets on redeploy or cold start, and isn't shared
+// across concurrent instances. That's fine for "stop hammering YouTube
+// during dev/testing"; a real production cache (Redis/KV) is a
+// separate, later concern.
+interface CacheEntry {
+    timestamp: number;
+    payload: any;
+}
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour for successful results
+const NEGATIVE_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes for empty/failed results
+const responseCache = new Map<string, CacheEntry>();
+
+function getCached(key: string): any | null {
+    const entry = responseCache.get(key);
+    if (!entry) return null;
+    const isNegative = !entry.payload?.hasChapters;
+    const ttl = isNegative ? NEGATIVE_CACHE_TTL_MS : CACHE_TTL_MS;
+    if (Date.now() - entry.timestamp > ttl) {
+        responseCache.delete(key);
+        return null;
+    }
+    return entry.payload;
+}
+
+function setCached(key: string, payload: any): void {
+    responseCache.set(key, { timestamp: Date.now(), payload });
+}
+
 // Standard browser-like headers for scraping YouTube pages.
 // Crucially includes a CONSENT cookie - without it, requests from many
 // cloud/datacenter IPs (and most EU-region IPs) get redirected to a
@@ -159,12 +196,46 @@ function extractDurationFromRenderer(v: any): string {
     return '0:00';
 }
 
+// Recursively walks the entire ytInitialData tree looking for
+// playlistVideoRenderer objects, regardless of where they're nested.
+// This is the resilient fallback to the hardcoded index path below:
+// YouTube occasionally inserts extra renderers (banners, interstitials,
+// "this playlist may not work as expected" notices) at fixed indices
+// like tabs[0] or contents[0], which silently shifts the real video
+// list to a different index and makes the hardcoded path return
+// undefined even though the data is right there in the tree.
+function findPlaylistVideoRenderersDeep(node: any, found: any[] = [], depth = 0): any[] {
+    if (!node || typeof node !== 'object' || depth > 40) return found;
+
+    if (Array.isArray(node)) {
+        for (const item of node) {
+            findPlaylistVideoRenderersDeep(item, found, depth + 1);
+        }
+        return found;
+    }
+
+    if (node.playlistVideoRenderer) {
+        found.push(node.playlistVideoRenderer);
+        // playlistVideoRenderer objects don't nest further renderers we care
+        // about, so no need to recurse into this particular branch further.
+        return found;
+    }
+
+    for (const key in node) {
+        if (Object.prototype.hasOwnProperty.call(node, key)) {
+            findPlaylistVideoRenderersDeep(node[key], found, depth + 1);
+        }
+    }
+
+    return found;
+}
+
 function extractPlaylistVideos(data: any): Chapter[] {
     try {
         const videos = data?.contents?.twoColumnBrowseResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents?.[0]?.playlistVideoListRenderer?.contents;
 
         if (videos && Array.isArray(videos)) {
-            return videos
+            const chapters = videos
                 .filter((item: any) => item.playlistVideoRenderer)
                 .map((item: any) => {
                     const v = item.playlistVideoRenderer;
@@ -175,7 +246,24 @@ function extractPlaylistVideos(data: any): Chapter[] {
                         videoId: v.videoId
                     };
                 });
+            if (chapters.length > 0) return chapters;
         }
+
+        // Hardcoded path found nothing (renderer shifted indices, or the
+        // path itself changed) - fall back to scanning the whole tree.
+        const deepRenderers = findPlaylistVideoRenderersDeep(data);
+        if (deepRenderers.length > 0) {
+            console.log(`extractPlaylistVideos: hardcoded path found 0, deep scan found ${deepRenderers.length}`);
+            return deepRenderers
+                .filter((v: any) => v?.videoId)
+                .map((v: any) => ({
+                    title: v.title?.runs?.[0]?.text || v.title?.simpleText || 'Untitled Video',
+                    time: extractDurationFromRenderer(v),
+                    url: `https://youtube.com/watch?v=${v.videoId}`,
+                    videoId: v.videoId
+                }));
+        }
+
         return [];
     } catch (err) {
         console.error('Error extracting playlist videos:', err);
@@ -480,6 +568,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Video ID or Playlist ID is required' }, { status: 400 });
         }
 
+        const cacheKey = playlistId ? `playlist:${playlistId}` : `video:${videoId}`;
+        const cached = getCached(cacheKey);
+        if (cached) {
+            console.log(`Serving cached result for ${cacheKey}`);
+            return NextResponse.json({ ...cached, debug: { ...(cached.debug || {}), servedFromCache: true } });
+        }
+
         let chapters: Chapter[] = [];
         let title = '';
         let isPlaylist = false;
@@ -618,13 +713,21 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({
+        const responsePayload = {
             chapters,
             title,
             hasChapters: chapters.length > 0,
             isPlaylist,
             debug
-        });
+        };
+
+        // Cache successful (and empty) results so reloading the same
+        // course page repeatedly doesn't re-scrape YouTube every time.
+        // A *different* playlistId/videoId always misses this cache and
+        // goes straight to YouTube, since the key includes the id itself.
+        setCached(cacheKey, responsePayload);
+
+        return NextResponse.json(responsePayload);
     } catch (error) {
         console.error('Chapters API Error:', error);
         return NextResponse.json(
