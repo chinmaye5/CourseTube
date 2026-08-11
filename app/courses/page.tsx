@@ -816,11 +816,15 @@ export default function YouTubeCoursePlayer() {
                                         {chapters[currentChapter].title}
                                     </h3>
                                     <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                                        <span className="flex items-center gap-1">
-                                            <Clock className="h-3.5 w-3.5" />
-                                            {chapters[currentChapter].time}
-                                        </span>
-                                        <span>·</span>
+                                        {chapters[currentChapter].time && chapters[currentChapter].time !== '0:00' && (
+                                            <>
+                                                <span className="flex items-center gap-1">
+                                                    <Clock className="h-3.5 w-3.5" />
+                                                    {chapters[currentChapter].time}
+                                                </span>
+                                                <span>·</span>
+                                            </>
+                                        )}
                                         <span>{videoProgress?.completedChapters.length || 0} of {chapters.length} completed</span>
                                     </div>
                                 </div>
@@ -1000,10 +1004,12 @@ export default function YouTubeCoursePlayer() {
                                                                     }`}>
                                                                     {chapter.title}
                                                                 </h4>
-                                                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                                                                    <Clock className="h-3 w-3" />
-                                                                    <span>{chapter.time}</span>
-                                                                </div>
+                                                                {chapter.time && chapter.time !== '0:00' && (
+                                                                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                                                        <Clock className="h-3 w-3" />
+                                                                        <span>{chapter.time}</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
 
                                                             {!isCurrent && (

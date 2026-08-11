@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Allow this route up to 60 s on Vercel (Pro plan). Hobby plan caps at
+// 10 s regardless of this value, but setting it explicitly documents
+// intent and enables the longer timeout when the plan supports it.
+export const maxDuration = 60;
+
 const FETCH_TIMEOUT_MS = 10000; // 10 second timeout per fetch
 const API_ROUTE_TIMEOUT_MS = 25000; // 25 second overall route timeout
 
@@ -420,33 +425,117 @@ async function fetchPlaylistTitle(playlistId: string, fallbackHtml: string, fall
     return 'YouTube Playlist Course';
 }
 
-async function fetchVideoDuration(videoId: string): Promise<string> {
+// ---------- Duration fetching strategies ----------
+// Production (Vercel datacenter IPs) can't reliably scrape YouTube watch
+// pages because they get consent-walled. We use a layered approach:
+//   1. YouTube embed page (/embed/VIDEO_ID) – this is a lightweight page
+//      that YouTube serves WITHOUT consent walls (embeds must work
+//      everywhere). It contains "lengthSeconds" in the embedded player
+//      config, giving us duration reliably from datacenter IPs.
+//   2. Scrape the full watch page as a last resort, with consent-wall
+//      detection and retry logic.
+
+function extractDurationFromHtml(html: string): string {
+    // Try itemprop duration (most reliable on full watch pages)
+    const metaMatch = html.match(/itemprop="duration" content="PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?"/);
+    if (metaMatch) {
+        const hours = parseInt(metaMatch[1] || '0', 10);
+        const minutes = parseInt(metaMatch[2] || '0', 10);
+        const seconds = parseInt(metaMatch[3] || '0', 10);
+        return formatTime((hours * 3600 + minutes * 60 + seconds) * 1000);
+    }
+
+    // lengthSeconds from player config (works on both embed and watch pages)
+    const lengthMatch = html.match(/"lengthSeconds":"(\d+)"/);
+    if (lengthMatch) {
+        return formatTime(parseInt(lengthMatch[1], 10) * 1000);
+    }
+
+    // Escaped variant (sometimes in embedded JSON strings)
+    const escapedMatch = html.match(/\\"lengthSeconds\\":\\"(\d+)\\"/);
+    if (escapedMatch) {
+        return formatTime(parseInt(escapedMatch[1], 10) * 1000);
+    }
+
+    // approxDurationMs (sometimes present in streaming data)
+    const approxMatch = html.match(/"approxDurationMs":"(\d+)"/);
+    if (approxMatch) {
+        return formatTime(parseInt(approxMatch[1], 10));
+    }
+
+    return '0:00';
+}
+
+async function fetchDurationFromEmbed(videoId: string): Promise<string> {
+    try {
+        // The embed page is lightweight (~50-100KB vs ~500KB+ for watch)
+        // and critically does NOT trigger consent walls because embeds
+        // must work on third-party sites without user interaction.
+        const res = await fetchWithTimeout(
+            `https://www.youtube.com/embed/${videoId}`,
+            {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                }
+            },
+            5000
+        );
+        if (!res.ok) return '0:00';
+        const html = await res.text();
+        return extractDurationFromHtml(html);
+    } catch {
+        return '0:00';
+    }
+}
+
+async function fetchDurationFromScrape(videoId: string): Promise<string> {
     try {
         const res = await fetchWithTimeout(`https://www.youtube.com/watch?v=${videoId}`, {
             headers: YOUTUBE_SCRAPE_HEADERS
         }, 6000);
         if (!res.ok) return '0:00';
-        const html = await res.text();
+        let html = await res.text();
 
-        // Try itemprop duration (most reliable, lightweight)
-        const metaMatch = html.match(/itemprop="duration" content="PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?"/);
-        if (metaMatch) {
-            const hours = parseInt(metaMatch[1] || '0', 10);
-            const minutes = parseInt(metaMatch[2] || '0', 10);
-            const seconds = parseInt(metaMatch[3] || '0', 10);
-            return formatTime((hours * 3600 + minutes * 60 + seconds) * 1000);
+        // Detect consent wall – retry once with different UA + locale
+        if (isConsentWallHtml(html)) {
+            try {
+                const retryRes = await fetchWithTimeout(
+                    `https://www.youtube.com/watch?v=${videoId}&hl=en&gl=US`,
+                    {
+                        headers: {
+                            ...YOUTUBE_SCRAPE_HEADERS,
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+                        }
+                    },
+                    5000
+                );
+                if (retryRes.ok) {
+                    const retryHtml = await retryRes.text();
+                    if (!isConsentWallHtml(retryHtml)) {
+                        html = retryHtml;
+                    }
+                }
+            } catch { /* ignore retry errors */ }
         }
 
-        // Fallback: lengthSeconds from page data
-        const lengthMatch = html.match(/"lengthSeconds":"(\d+)"/);
-        if (lengthMatch) {
-            return formatTime(parseInt(lengthMatch[1], 10) * 1000);
-        }
-
-        return '0:00';
+        return extractDurationFromHtml(html);
     } catch {
         return '0:00';
     }
+}
+
+async function fetchVideoDuration(videoId: string): Promise<string> {
+    // Strategy 1: Embed page (no consent walls, lightweight, works from datacenter IPs)
+    const embedResult = await fetchDurationFromEmbed(videoId);
+    if (embedResult !== '0:00') return embedResult;
+
+    // Strategy 2: Full watch page scrape with consent-wall retry
+    const scrapeResult = await fetchDurationFromScrape(videoId);
+    if (scrapeResult !== '0:00') return scrapeResult;
+
+    return '0:00';
 }
 
 // The YouTube playlist page often omits duration on playlistVideoRenderer
@@ -462,7 +551,7 @@ async function enrichChapterDurations(
     chapters: Chapter[],
     options: { maxToFetch?: number; concurrency?: number; budgetMs?: number } = {}
 ): Promise<Chapter[]> {
-    const { maxToFetch = 60, concurrency = 8, budgetMs = 15000 } = options;
+    const { maxToFetch = 80, concurrency = 10, budgetMs = 40000 } = options;
 
     const needsDuration = chapters
         .map((c, idx) => ({ c, idx }))
@@ -476,21 +565,35 @@ async function enrichChapterDurations(
     const result = [...chapters];
     const deadline = Date.now() + budgetMs;
     let cursor = 0;
+    let enriched = 0;
+    let failed = 0;
 
     async function worker() {
         while (cursor < needsDuration.length) {
-            if (Date.now() > deadline) return; // stop spawning new fetches once we're out of budget
+            if (Date.now() > deadline) {
+                console.log(`Duration enrichment hit time budget (${budgetMs}ms), stopping`);
+                return;
+            }
             const item = needsDuration[cursor++];
             if (!item.c.videoId) continue;
-            const duration = await fetchVideoDuration(item.c.videoId);
-            if (duration !== '0:00') {
-                result[item.idx] = { ...result[item.idx], time: duration };
+            try {
+                const duration = await fetchVideoDuration(item.c.videoId);
+                if (duration !== '0:00') {
+                    result[item.idx] = { ...result[item.idx], time: duration };
+                    enriched++;
+                } else {
+                    failed++;
+                }
+            } catch {
+                failed++;
             }
         }
     }
 
     const workers = Array.from({ length: Math.min(concurrency, needsDuration.length) }, () => worker());
     await Promise.all(workers);
+
+    console.log(`Duration enrichment complete: ${enriched} succeeded, ${failed} failed, ${needsDuration.length - enriched - failed} skipped (timeout)`);
 
     return result;
 }
@@ -682,7 +785,7 @@ export async function POST(request: NextRequest) {
             debug.missingDurationsBeforeEnrichment = missingDurations;
             if (missingDurations > 0) {
                 console.log(`${missingDurations} video(s) missing duration, enriching...`);
-                chapters = await enrichChapterDurations(chapters, { maxToFetch: 60, concurrency: 8, budgetMs: 15000 });
+                chapters = await enrichChapterDurations(chapters, { maxToFetch: 80, concurrency: 10, budgetMs: 40000 });
                 debug.missingDurationsAfterEnrichment = chapters.filter(c => !c.time || c.time === '0:00').length;
             }
         } else {
