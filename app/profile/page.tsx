@@ -12,6 +12,7 @@ import {
     Plus,
     Trash2,
     AlertCircle,
+    Award,
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 
@@ -37,6 +38,35 @@ export default function Profile() {
     const [error, setError] = useState('');
     const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [loadingCertVideoId, setLoadingCertVideoId] = useState<string | null>(null);
+
+    const handleViewCertificate = async (e: React.MouseEvent, course: Course) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            setLoadingCertVideoId(course.videoId);
+            const res = await fetch('/api/certificates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    videoId: course.videoId,
+                    courseTitle: course.title,
+                    totalWatchTime: course.progress.totalWatchTime || 0,
+                    userName: [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.fullName || 'CourseTube Learner'
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.certificate?.certificateId) {
+                    window.open(`/certificate/${data.certificate.certificateId}`, '_blank');
+                }
+            }
+        } catch (err) {
+            console.error('Error opening certificate:', err);
+        } finally {
+            setLoadingCertVideoId(null);
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -259,6 +289,25 @@ export default function Profile() {
                                                 </span>
                                                 <span>{formatDate(course.lastAccessed)}</span>
                                             </div>
+
+                                            {pct === 100 && (
+                                                <div className="mt-3 pt-3 border-t border-border">
+                                                    <button
+                                                        onClick={(e) => handleViewCertificate(e, course)}
+                                                        disabled={loadingCertVideoId === course.videoId}
+                                                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-2 text-xs font-bold text-slate-950 transition-all hover:opacity-90 shadow-sm disabled:opacity-50"
+                                                    >
+                                                        {loadingCertVideoId === course.videoId ? (
+                                                            <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                                                        ) : (
+                                                            <>
+                                                                <Award className="h-3.5 w-3.5" />
+                                                                <span>View Certificate 🎓</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </Link>
                                 );

@@ -22,7 +22,8 @@ import {
     X,
     Home,
     BookOpen,
-    TrendingUp
+    TrendingUp,
+    Award
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from 'sonner';
@@ -72,6 +73,9 @@ export default function YouTubeCoursePlayer() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [sidebarTab, setSidebarTab] = useState<'chapters' | 'notes'>('chapters');
     const [isPlaylistCourse, setIsPlaylistCourse] = useState(false);
+    const [certificateId, setCertificateId] = useState<string | null>(null);
+    const [showCertModal, setShowCertModal] = useState(false);
+    const [generatingCert, setGeneratingCert] = useState(false);
 
     const playerRef = useRef<any>(null);
     const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -496,8 +500,39 @@ export default function YouTubeCoursePlayer() {
         }
     };
 
+    const fetchOrGenerateCertificate = async (autoModal = false) => {
+        if (!videoId || !user) return;
+        try {
+            setGeneratingCert(true);
+            const response = await fetch('/api/certificates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    videoId,
+                    courseTitle: videoTitle || 'YouTube Course',
+                    totalWatchTime: progress[videoId]?.totalWatchTime || 0,
+                    userName: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.fullName || 'CourseTube Learner'
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.certificate?.certificateId) {
+                    setCertificateId(data.certificate.certificateId);
+                    if (autoModal) {
+                        setShowCertModal(true);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Error with certificate:', err);
+        } finally {
+            setGeneratingCert(false);
+        }
+    };
+
     const triggerCelebration = (isCourseComplete: boolean, chapterTitle?: string) => {
         if (isCourseComplete) {
+            fetchOrGenerateCertificate(true);
             toast.success('🎉 GOAL ACHIEVED! COURSE COMPLETED!', {
                 description: `You've mastered: ${videoTitle} 🏆`,
                 duration: 8000,
@@ -748,6 +783,22 @@ export default function YouTubeCoursePlayer() {
                                     />
                                 </div>
                             </div>
+                        )}
+
+                        {progressPercentage === 100 && (
+                            <button
+                                onClick={() => {
+                                    if (certificateId) {
+                                        setShowCertModal(true);
+                                    } else {
+                                        fetchOrGenerateCertificate(true);
+                                    }
+                                }}
+                                className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-1.5 text-xs font-bold text-slate-950 transition-all hover:scale-105 shadow-sm"
+                            >
+                                <Award className="h-4 w-4" />
+                                <span>Certificate 🎓</span>
+                            </button>
                         )}
 
                         <ThemeToggle />
@@ -1074,6 +1125,56 @@ export default function YouTubeCoursePlayer() {
                     </div>
                 </div>
             </div>
+
+            {/* Certificate Modal */}
+            {showCertModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in">
+                    <div className="w-full max-w-md rounded-2xl border-2 border-amber-500/40 bg-card p-6 shadow-2xl text-center relative overflow-hidden">
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 mb-4 shadow-lg">
+                            <Award className="h-8 w-8" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground">Course Completed! 🎉</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Congratulations! You&apos;ve completed <span className="font-semibold text-foreground">&ldquo;{videoTitle}&rdquo;</span>.
+                        </p>
+
+                        <div className="mt-6 flex flex-col gap-3">
+                            {certificateId ? (
+                                <Link
+                                    href={`/certificate/${certificateId}`}
+                                    target="_blank"
+                                    className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-3 text-sm font-bold text-slate-950 transition-all hover:opacity-90 shadow-md"
+                                >
+                                    <Award className="h-4 w-4" />
+                                    View & Download Certificate 🏆
+                                </Link>
+                            ) : (
+                                <button
+                                    onClick={() => fetchOrGenerateCertificate(true)}
+                                    disabled={generatingCert}
+                                    className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-slate-950 transition-all hover:opacity-90 disabled:opacity-50"
+                                >
+                                    {generatingCert ? (
+                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                                    ) : (
+                                        <>
+                                            <Award className="h-4 w-4" />
+                                            Claim Certificate 🎓
+                                        </>
+                                    )}
+                                </button>
+                            )}
+
+                            <button
+                                onClick={() => setShowCertModal(false)}
+                                className="rounded-xl border border-border bg-background py-2 text-xs font-medium text-muted-foreground hover:bg-muted"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
