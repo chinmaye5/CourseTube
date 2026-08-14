@@ -809,7 +809,20 @@ export async function POST(request: NextRequest) {
             title = await fetchVideoTitle(videoId, html, data);
 
             if (chapters.length === 0) {
-                const lengthSeconds = extractVideoLength(html);
+                let lengthSeconds = extractVideoLength(html);
+                if (lengthSeconds <= 0) {
+                    const durationStr = await fetchVideoDuration(videoId);
+                    if (durationStr && durationStr !== '0:00') {
+                        const parts = durationStr.split(':').map(part => parseInt(part, 10));
+                        if (parts.length === 3) {
+                            lengthSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                        } else if (parts.length === 2) {
+                            lengthSeconds = parts[0] * 60 + parts[1];
+                        } else if (parts.length === 1 && !isNaN(parts[0])) {
+                            lengthSeconds = parts[0];
+                        }
+                    }
+                }
                 if (lengthSeconds > 0) {
                     chapters = generateDummyChapters(lengthSeconds, videoId);
                 }

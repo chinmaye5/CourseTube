@@ -200,7 +200,11 @@ export default function YouTubeCoursePlayer() {
     };
 
     const saveProgressToDatabase = async () => {
-        if (!videoId || !user) return;
+        const vid = videoIdRef.current || videoId;
+        const chaps = chaptersRef.current.length > 0 ? chaptersRef.current : chapters;
+        if (!vid || !user) return;
+
+        const currentProgress = progressRef.current[vid] || progress[vid];
 
         try {
             const response = await fetch('/api/save-progress', {
@@ -209,11 +213,11 @@ export default function YouTubeCoursePlayer() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    videoId,
+                    videoId: vid,
                     url,
                     title: videoTitle || 'YouTube Course',
-                    chapters,
-                    progress: progress[videoId]
+                    chapters: chaps,
+                    progress: currentProgress
                 }),
             });
 
@@ -501,16 +505,18 @@ export default function YouTubeCoursePlayer() {
     };
 
     const fetchOrGenerateCertificate = async (autoModal = false) => {
-        if (!videoId || !user) return;
+        const vid = videoIdRef.current || videoId;
+        if (!vid || !user) return;
         try {
             setGeneratingCert(true);
+            const currentProgress = progressRef.current[vid] || progress[vid];
             const response = await fetch('/api/certificates', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    videoId,
+                    videoId: vid,
                     courseTitle: videoTitle || 'YouTube Course',
-                    totalWatchTime: progress[videoId]?.totalWatchTime || 0,
+                    totalWatchTime: currentProgress?.totalWatchTime || 0,
                     userName: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.fullName || 'CourseTube Learner'
                 })
             });
@@ -595,29 +601,37 @@ export default function YouTubeCoursePlayer() {
     };
 
     const trackProgress = () => {
-        if (!playerRef.current || chapters.length === 0) return;
+        const chaps = chaptersRef.current;
+        const vid = videoIdRef.current;
+        const currentChap = currentChapterRef.current;
+        const isPlaylist = isPlaylistCourseRef.current;
 
-        const currentTime = playerRef.current.getCurrentTime();
+        if (!playerRef.current || chaps.length === 0 || !vid) return;
+
+        const currentTime = typeof playerRef.current.getCurrentTime === 'function'
+            ? playerRef.current.getCurrentTime()
+            : 0;
 
         // Find current chapter based on timestamp (only for single-video courses)
-        let newCurrentChapter = currentChapter;
+        let newCurrentChapter = currentChap;
 
-        if (!isPlaylistCourse) {
-            for (let i = chapters.length - 1; i >= 0; i--) {
-                if (currentTime >= chapters[i].timestamp) {
+        if (!isPlaylist) {
+            for (let i = chaps.length - 1; i >= 0; i--) {
+                if (currentTime >= chaps[i].timestamp) {
                     newCurrentChapter = i;
                     break;
                 }
             }
         }
 
-        if (newCurrentChapter !== currentChapter) {
+        if (newCurrentChapter !== currentChap) {
             setCurrentChapter(newCurrentChapter);
+            currentChapterRef.current = newCurrentChapter;
 
             // Auto-mark previous chapters as completed
-            if (newCurrentChapter > currentChapter) {
+            if (newCurrentChapter > currentChap) {
                 setProgress(prev => {
-                    const videoProgress = prev[videoId] || {
+                    const videoProgress = prev[vid] || {
                         completedChapters: [],
                         lastWatchedChapter: -1,
                         progressPercentage: 0,
@@ -630,18 +644,18 @@ export default function YouTubeCoursePlayer() {
                         ...Array.from({ length: newCurrentChapter }, (_, i) => i)
                     ])];
 
-                    const progressPercentage = Math.round((newCompletedChapters.length / chapters.length) * 100);
+                    const progressPercentage = Math.round((newCompletedChapters.length / chaps.length) * 100);
 
                     // Trigger celebration if new chapters were completed
                     if (newCompletedChapters.length > videoProgress.completedChapters.length) {
                         const newlyCompleted = newCompletedChapters.filter(idx => !videoProgress.completedChapters.includes(idx));
                         const latestChapterIdx = Math.max(...newlyCompleted);
-                        triggerCelebration(progressPercentage === 100, chapters[latestChapterIdx]?.title);
+                        triggerCelebration(progressPercentage === 100, chaps[latestChapterIdx]?.title);
                     }
 
                     return {
                         ...prev,
-                        [videoId]: {
+                        [vid]: {
                             ...videoProgress,
                             completedChapters: newCompletedChapters,
                             lastWatchedChapter: newCurrentChapter,
@@ -656,17 +670,20 @@ export default function YouTubeCoursePlayer() {
     };
 
     const seekToChapter = (chapterIndex: number) => {
-        if (!chapters[chapterIndex]) return;
+        const chaps = chaptersRef.current.length > 0 ? chaptersRef.current : chapters;
+        if (!chaps[chapterIndex]) return;
 
-        if (isPlaylistCourse && chapters[chapterIndex].videoId) {
+        if (isPlaylistCourseRef.current && chaps[chapterIndex].videoId) {
             // Load new video if it's a playlist
-            setPlayingVideoId(chapters[chapterIndex].videoId!);
+            setPlayingVideoId(chaps[chapterIndex].videoId!);
             setCurrentChapter(chapterIndex);
+            currentChapterRef.current = chapterIndex;
         } else if (playerRef.current) {
             // Seek within same video if it's a normal course
-            playerRef.current.seekTo(chapters[chapterIndex].timestamp, true);
+            playerRef.current.seekTo(chaps[chapterIndex].timestamp, true);
             playerRef.current.playVideo();
             setCurrentChapter(chapterIndex);
+            currentChapterRef.current = chapterIndex;
         }
     };
 
@@ -678,10 +695,12 @@ export default function YouTubeCoursePlayer() {
     };
 
     const markChapterCompleted = (chapterIndex: number, forceStatus?: boolean) => {
-        if (!videoId) return;
+        const vid = videoIdRef.current || videoId;
+        const chaps = chaptersRef.current.length > 0 ? chaptersRef.current : chapters;
+        if (!vid || chaps.length === 0) return;
 
         setProgress(prev => {
-            const videoProgress = prev[videoId] || {
+            const videoProgress = prev[vid] || {
                 completedChapters: [],
                 lastWatchedChapter: -1,
                 progressPercentage: 0,
@@ -699,16 +718,16 @@ export default function YouTubeCoursePlayer() {
                 newCompletedChapters = videoProgress.completedChapters.filter(idx => idx !== chapterIndex);
             }
 
-            const progressPercentage = Math.round((newCompletedChapters.length / chapters.length) * 100);
+            const progressPercentage = Math.round((newCompletedChapters.length / chaps.length) * 100);
 
             // Trigger gamification effects only on newly completed chapters
             if (shouldBeCompleted && !isCurrentlyCompleted) {
-                triggerCelebration(progressPercentage === 100, chapters[chapterIndex]?.title);
+                triggerCelebration(progressPercentage === 100, chaps[chapterIndex]?.title);
             }
 
             return {
                 ...prev,
-                [videoId]: {
+                [vid]: {
                     ...videoProgress,
                     completedChapters: newCompletedChapters,
                     lastWatchedChapter: chapterIndex,
