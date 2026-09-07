@@ -506,6 +506,7 @@ export default function YouTubeCoursePlayer() {
 
     const fetchOrGenerateCertificate = async (autoModal = false) => {
         const vid = videoIdRef.current || videoId;
+        const chaps = chaptersRef.current.length > 0 ? chaptersRef.current : chapters;
         if (!vid || !user) return;
         try {
             setGeneratingCert(true);
@@ -517,6 +518,8 @@ export default function YouTubeCoursePlayer() {
                     videoId: vid,
                     courseTitle: videoTitle || 'YouTube Course',
                     totalWatchTime: currentProgress?.totalWatchTime || 0,
+                    chaptersCompleted: currentProgress?.completedChapters?.length || chaps.length,
+                    totalChapters: chaps.length,
                     userName: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.fullName || 'CourseTube Learner'
                 })
             });
@@ -612,61 +615,65 @@ export default function YouTubeCoursePlayer() {
             ? playerRef.current.getCurrentTime()
             : 0;
 
-        // Find current chapter based on timestamp (only for single-video courses)
-        let newCurrentChapter = currentChap;
+        // Always increment totalWatchTime by 1 second while video is playing
+        setProgress(prev => {
+            const videoProgress = prev[vid] || {
+                completedChapters: [],
+                lastWatchedChapter: -1,
+                progressPercentage: 0,
+                totalWatchTime: 0,
+                timestamp: Date.now()
+            };
 
-        if (!isPlaylist) {
-            for (let i = chaps.length - 1; i >= 0; i--) {
-                if (currentTime >= chaps[i].timestamp) {
-                    newCurrentChapter = i;
-                    break;
+            // Find current chapter based on timestamp (only for single-video courses)
+            let newCurrentChapter = currentChap;
+            if (!isPlaylist) {
+                for (let i = chaps.length - 1; i >= 0; i--) {
+                    if (currentTime >= chaps[i].timestamp) {
+                        newCurrentChapter = i;
+                        break;
+                    }
                 }
             }
-        }
 
-        if (newCurrentChapter !== currentChap) {
-            setCurrentChapter(newCurrentChapter);
-            currentChapterRef.current = newCurrentChapter;
-
-            // Auto-mark previous chapters as completed
+            // Auto-mark previous chapters as completed when chapter advances
+            let newCompletedChapters = [...videoProgress.completedChapters];
             if (newCurrentChapter > currentChap) {
-                setProgress(prev => {
-                    const videoProgress = prev[vid] || {
-                        completedChapters: [],
-                        lastWatchedChapter: -1,
-                        progressPercentage: 0,
-                        totalWatchTime: 0,
-                        timestamp: Date.now()
-                    };
+                newCompletedChapters = [...new Set([
+                    ...videoProgress.completedChapters,
+                    ...Array.from({ length: newCurrentChapter }, (_, i) => i)
+                ])];
 
-                    const newCompletedChapters = [...new Set([
-                        ...videoProgress.completedChapters,
-                        ...Array.from({ length: newCurrentChapter }, (_, i) => i)
-                    ])];
+                const progressPercentage = Math.round((newCompletedChapters.length / chaps.length) * 100);
 
-                    const progressPercentage = Math.round((newCompletedChapters.length / chaps.length) * 100);
-
-                    // Trigger celebration if new chapters were completed
-                    if (newCompletedChapters.length > videoProgress.completedChapters.length) {
-                        const newlyCompleted = newCompletedChapters.filter(idx => !videoProgress.completedChapters.includes(idx));
-                        const latestChapterIdx = Math.max(...newlyCompleted);
-                        triggerCelebration(progressPercentage === 100, chaps[latestChapterIdx]?.title);
-                    }
-
-                    return {
-                        ...prev,
-                        [vid]: {
-                            ...videoProgress,
-                            completedChapters: newCompletedChapters,
-                            lastWatchedChapter: newCurrentChapter,
-                            progressPercentage,
-                            totalWatchTime: videoProgress.totalWatchTime + 1,
-                            timestamp: Date.now()
-                        }
-                    };
-                });
+                // Trigger celebration if new chapters were completed
+                if (newCompletedChapters.length > videoProgress.completedChapters.length) {
+                    const newlyCompleted = newCompletedChapters.filter(idx => !videoProgress.completedChapters.includes(idx));
+                    const latestChapterIdx = Math.max(...newlyCompleted);
+                    triggerCelebration(progressPercentage === 100, chaps[latestChapterIdx]?.title);
+                }
             }
-        }
+
+            // Update chapter ref if changed
+            if (newCurrentChapter !== currentChap) {
+                setCurrentChapter(newCurrentChapter);
+                currentChapterRef.current = newCurrentChapter;
+            }
+
+            const newProgressPercentage = Math.round((newCompletedChapters.length / chaps.length) * 100);
+
+            return {
+                ...prev,
+                [vid]: {
+                    ...videoProgress,
+                    completedChapters: newCompletedChapters,
+                    lastWatchedChapter: newCurrentChapter,
+                    progressPercentage: newProgressPercentage,
+                    totalWatchTime: (videoProgress.totalWatchTime || 0) + 1,
+                    timestamp: Date.now()
+                }
+            };
+        });
     };
 
     const seekToChapter = (chapterIndex: number) => {
@@ -1139,6 +1146,12 @@ export default function YouTubeCoursePlayer() {
                                 currentChapter={currentChapter}
                                 chapters={chapters}
                                 onSeekTo={seekToTimestamp}
+                                getCurrentTimestamp={() => {
+                                    if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+                                        return playerRef.current.getCurrentTime();
+                                    }
+                                    return chapters[currentChapter]?.timestamp || 0;
+                                }}
                             />
                         )}
                     </div>

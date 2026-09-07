@@ -33,9 +33,10 @@ interface NotesBookmarksProps {
     currentChapter: number;
     chapters: any[];
     onSeekTo: (timestamp: number) => void;
+    getCurrentTimestamp?: () => number;
 }
 
-export default function NotesBookmarks({ videoId, currentChapter, chapters, onSeekTo }: NotesBookmarksProps) {
+export default function NotesBookmarks({ videoId, currentChapter, chapters, onSeekTo, getCurrentTimestamp }: NotesBookmarksProps) {
     const [activeTab, setActiveTab] = useState<'notes' | 'bookmarks'>('notes');
     const [notes, setNotes] = useState<Note[]>([]);
     const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -129,14 +130,16 @@ export default function NotesBookmarks({ videoId, currentChapter, chapters, onSe
 
     const saveBookmark = async () => {
         try {
+            // Use the actual player timestamp if available, otherwise fall back to chapter start
+            const currentPlayerTime = getCurrentTimestamp ? getCurrentTimestamp() : (chapters[currentChapter]?.timestamp || 0);
             const response = await fetch('/api/save-bookmark', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     videoId,
                     chapterIndex: currentChapter,
-                    timestamp: chapters[currentChapter]?.timestamp || 0,
-                    title: newBookmarkTitle || `Bookmark at ${chapters[currentChapter]?.title}`
+                    timestamp: currentPlayerTime,
+                    title: newBookmarkTitle || `Bookmark at ${formatTime(currentPlayerTime)}`
                 })
             });
 

@@ -23,6 +23,8 @@ interface CertificateData {
     videoId: string;
     courseTitle: string;
     totalWatchTime: number;
+    chaptersCompleted: number;
+    totalChapters: number;
     issuedAt: string;
     completedAt: string;
 }
@@ -284,15 +286,17 @@ export default function CertificatePage({ params }: { params: Promise<{ id: stri
                                     </span>
                                 </div>
                                 <div className="flex flex-col items-center border-x border-amber-300 px-2">
-                                    <span className="text-[9px] sm:text-[10px] text-amber-800 font-semibold uppercase tracking-wider">Completed On</span>
+                                    <span className="text-[9px] sm:text-[10px] text-amber-800 font-semibold uppercase tracking-wider">Chapters</span>
                                     <span className="mt-0.5 text-xs font-bold text-slate-900">
-                                        {formatDate(certificate.issuedAt)}
+                                        {certificate.chaptersCompleted && certificate.totalChapters
+                                            ? `${certificate.chaptersCompleted}/${certificate.totalChapters}`
+                                            : 'All Completed'}
                                     </span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-[9px] sm:text-[10px] text-amber-800 font-semibold uppercase tracking-wider">Credential ID</span>
-                                    <span className="mt-0.5 text-xs font-mono font-bold text-[#B8860B]">
-                                        {certificate.certificateId}
+                                    <span className="text-[9px] sm:text-[10px] text-amber-800 font-semibold uppercase tracking-wider">Completed On</span>
+                                    <span className="mt-0.5 text-xs font-bold text-slate-900">
+                                        {formatDate(certificate.issuedAt)}
                                     </span>
                                 </div>
                             </div>

@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { videoId, courseTitle, totalWatchTime, userName: bodyUserName } = body;
+        const { videoId, courseTitle, totalWatchTime, chaptersCompleted, totalChapters, userName: bodyUserName } = body;
 
         if (!videoId) {
             return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
@@ -94,6 +94,8 @@ export async function POST(request: NextRequest) {
                         userName,
                         courseTitle: courseTitle || existingCert.courseTitle,
                         totalWatchTime: totalWatchTime || existingCert.totalWatchTime || 0,
+                        chaptersCompleted: chaptersCompleted || existingCert.chaptersCompleted || 0,
+                        totalChapters: totalChapters || existingCert.totalChapters || 0,
                         updatedAt: new Date()
                     }
                 }
@@ -110,6 +112,8 @@ export async function POST(request: NextRequest) {
             videoId,
             courseTitle: courseTitle || 'CourseTube Masterclass',
             totalWatchTime: totalWatchTime || 0,
+            chaptersCompleted: chaptersCompleted || 0,
+            totalChapters: totalChapters || 0,
             issuedAt: new Date(),
             completedAt: new Date()
         };
