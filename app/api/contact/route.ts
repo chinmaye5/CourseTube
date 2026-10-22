@@ -2,15 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 
 import { isAdmin } from '@/lib/admin';
+import { contactSchema } from '@/lib/validation';
+import { checkRateLimit, rateLimits } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
     try {
-        const { email, message, name } = await request.json();
+        const body = await request.json();
+        const validation = contactSchema.safeParse(body);
 
-        if (!email || !message) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validation.error.issues },
+                { status: 400 }
+            );
+        }
+
+        const { email, message, name } = validation.data;
+
+        // Rate limiting based on email to prevent spam
+        const { success, remaining } = await checkRateLimit(
+            email,
+            rateLimits.contact.limit,
+            rateLimits.contact.window
+        );
+
+        if (!success) {
+            return NextResponse.json(
+                { error: 'Too many messages. Please try again later.' },
+                { status: 429, headers: { 'X-RateLimit-Remaining': remaining.toString() } }
+            );
         }
 
         const client = await clientPromise;

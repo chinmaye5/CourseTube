@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
 import clientPromise from '@/lib/mongodb';
+import { saveProgressSchema } from '@/lib/validation';
+import { checkRateLimit, rateLimits } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
     try {
@@ -10,10 +12,30 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { videoId, url, title, chapters, progress } = await request.json();
+        const body = await request.json();
+        const validation = saveProgressSchema.safeParse(body);
 
-        if (!videoId) {
-            return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validation.error.issues },
+                { status: 400 }
+            );
+        }
+
+        const { videoId, url, title, chapters, progress } = validation.data;
+
+        // Rate limiting
+        const { success, remaining } = await checkRateLimit(
+            userId,
+            rateLimits.saveProgress.limit,
+            rateLimits.saveProgress.window
+        );
+
+        if (!success) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'X-RateLimit-Remaining': remaining.toString() } }
+            );
         }
 
         const client = await clientPromise;

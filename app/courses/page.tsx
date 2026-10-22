@@ -111,7 +111,7 @@ export default function YouTubeCoursePlayer() {
 
             if (idToLoad && user) {
                 // Load progress from MongoDB for this ID
-                await loadProgressForVideo(idToLoad);
+                const loadedProgress = await loadProgressForVideo(idToLoad);
 
                 const youtubeUrl = playlistIdParam
                     ? `https://www.youtube.com/playlist?list=${playlistIdParam}`
@@ -120,9 +120,10 @@ export default function YouTubeCoursePlayer() {
                 setUrl(youtubeUrl);
 
                 // Auto-load the course after progress is loaded
+                // Wait a bit for state to update and refs to sync
                 setTimeout(() => {
                     handleFetchChapters(youtubeUrl);
-                }, 800);
+                }, 200);
             } else if (user) {
                 // Just load all saved courses
                 loadSavedCourses();
@@ -160,6 +161,12 @@ export default function YouTubeCoursePlayer() {
                         [videoId]: course.progress
                     }));
 
+                    // Update ref immediately
+                    progressRef.current = {
+                        ...progressRef.current,
+                        [videoId]: course.progress
+                    };
+
                     // Also update localStorage
                     const savedProgress = localStorage.getItem('youtube-course-progress');
                     const progressData = savedProgress ? JSON.parse(savedProgress) : {};
@@ -192,6 +199,8 @@ export default function YouTubeCoursePlayer() {
 
                 if (Object.keys(mongoProgress).length > 0) {
                     setProgress(prev => ({ ...prev, ...mongoProgress }));
+                    // Update ref immediately
+                    progressRef.current = { ...progressRef.current, ...mongoProgress };
                 }
             }
         } catch (error) {
@@ -316,12 +325,28 @@ export default function YouTubeCoursePlayer() {
                     const idx = chaptersWithTimestamps.findIndex((c: Chapter) => c.videoId === vId);
                     if (idx !== -1) initialChapterIdx = idx;
                 }
-                // Priority 2: Resume from progress if it's a playlist
-                else if (data.isPlaylist && progressRef.current[idToUse]) {
-                    const resumeChapter = progressRef.current[idToUse].lastWatchedChapter || 0;
-                    if (chaptersWithTimestamps[resumeChapter]) {
-                        initialChapterIdx = resumeChapter;
-                        initialVideoId = chaptersWithTimestamps[resumeChapter].videoId || null;
+                // Priority 2: Resume from progress (find next uncompleted chapter)
+                else if (progressRef.current[idToUse]) {
+                    const currentProgress = progressRef.current[idToUse];
+                    const completedChapters = currentProgress.completedChapters || [];
+
+                    // Find first uncompleted chapter
+                    let nextChapterIdx = 0;
+                    for (let i = 0; i < chaptersWithTimestamps.length; i++) {
+                        if (!completedChapters.includes(i)) {
+                            nextChapterIdx = i;
+                            break;
+                        }
+                    }
+
+                    // If all completed, use last one
+                    if (completedChapters.length === chaptersWithTimestamps.length) {
+                        nextChapterIdx = Math.max(0, chaptersWithTimestamps.length - 1);
+                    }
+
+                    if (chaptersWithTimestamps[nextChapterIdx]) {
+                        initialChapterIdx = nextChapterIdx;
+                        initialVideoId = chaptersWithTimestamps[nextChapterIdx].videoId || null;
                     }
                 }
                 // Priority 3: Default to first video
@@ -403,17 +428,46 @@ export default function YouTubeCoursePlayer() {
         const vid = videoIdRef.current;
         const chaps = chaptersRef.current;
         const isPlaylist = isPlaylistCourseRef.current;
+        const currentProgress = progressRef.current[vid] || progress[vid];
 
-        // Resume from last watched chapter
-        if (progress[vid] && chaps.length > 0) {
-            const lastChapter = progress[vid].lastWatchedChapter || 0;
-            if (chaps[lastChapter]) {
+        // Resume from next uncompleted chapter
+        if (currentProgress && chaps.length > 0) {
+            const completedChapters = currentProgress.completedChapters || [];
+            const lastWatchedChapter = currentProgress.lastWatchedChapter || 0;
+
+            // Find the first uncompleted chapter
+            let nextChapterIndex = 0;
+            for (let i = 0; i < chaps.length; i++) {
+                if (!completedChapters.includes(i)) {
+                    nextChapterIndex = i;
+                    break;
+                }
+            }
+
+            // If all chapters are completed, start from the last one
+            if (completedChapters.length === chaps.length) {
+                nextChapterIndex = Math.max(0, chaps.length - 1);
+            }
+
+            if (chaps[nextChapterIndex]) {
                 if (isPlaylist) {
-                    // For playlists, we already set the correct videoId in handleFetchChapters
+                    // For playlists, load the correct video
+                    if (chaps[nextChapterIndex].videoId) {
+                        setPlayingVideoId(chaps[nextChapterIndex].videoId!);
+                        setCurrentChapter(nextChapterIndex);
+                        currentChapterRef.current = nextChapterIndex;
+                    }
                 } else {
-                    console.log('Resuming single video from chapter', lastChapter);
-                    playerRef.current.seekTo(chaps[lastChapter].timestamp, true);
-                    setCurrentChapter(lastChapter);
+                    console.log('Resuming from next uncompleted chapter:', nextChapterIndex);
+                    // Check if player is ready and has seekTo method
+                    if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+                        const timestamp = chaps[nextChapterIndex].timestamp;
+                        if (timestamp !== undefined && timestamp !== null) {
+                            playerRef.current.seekTo(timestamp, true);
+                            setCurrentChapter(nextChapterIndex);
+                            currentChapterRef.current = nextChapterIndex;
+                        }
+                    }
                 }
             }
         }
@@ -454,7 +508,9 @@ export default function YouTubeCoursePlayer() {
                                 console.log('Resuming auto-generated video from chapter', resumeChapter);
                                 setCurrentChapter(resumeChapter);
                                 currentChapterRef.current = resumeChapter;
-                                playerRef.current.seekTo(newChapters[resumeChapter].timestamp, true);
+                                if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+                                    playerRef.current.seekTo(newChapters[resumeChapter].timestamp, true);
+                                }
                             }
                         }
 
@@ -685,19 +741,23 @@ export default function YouTubeCoursePlayer() {
             setPlayingVideoId(chaps[chapterIndex].videoId!);
             setCurrentChapter(chapterIndex);
             currentChapterRef.current = chapterIndex;
-        } else if (playerRef.current) {
+        } else if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
             // Seek within same video if it's a normal course
             playerRef.current.seekTo(chaps[chapterIndex].timestamp, true);
-            playerRef.current.playVideo();
+            if (typeof playerRef.current.playVideo === 'function') {
+                playerRef.current.playVideo();
+            }
             setCurrentChapter(chapterIndex);
             currentChapterRef.current = chapterIndex;
         }
     };
 
     const seekToTimestamp = (timestamp: number) => {
-        if (playerRef.current) {
+        if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
             playerRef.current.seekTo(timestamp, true);
-            playerRef.current.playVideo();
+            if (typeof playerRef.current.playVideo === 'function') {
+                playerRef.current.playVideo();
+            }
         }
     };
 

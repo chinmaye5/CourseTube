@@ -52,14 +52,24 @@ CourseTube is a sophisticated learning management platform that transforms YouTu
    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_pub_key
    CLERK_SECRET_KEY=your_clerk_secret_key
    MONGODB_URI=your_mongodb_connection_string
+   ADMIN_EMAIL=admin@example.com
+   UPSTASH_REDIS_REST_URL=https://your-redis-url.upstash.io
+   UPSTASH_REDIS_REST_TOKEN=your_redis_token
    ```
 
-4. Start the development server:
+   **Important**: `ADMIN_EMAIL` is server-side only (no `NEXT_PUBLIC_` prefix) for security.
+
+4. Set up database indexes (required for production performance):
+   ```bash
+   node scripts/create-indexes.js
+   ```
+
+5. Start the development server:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
@@ -67,6 +77,27 @@ CourseTube is a sophisticated learning management platform that transforms YouTu
 - `/components`: Reusable UI components built with a focus on modularity and performance.
 - `/lib`: Core utility functions, database configurations, and shared logic.
 - `/public`: Static assets including brand assets and icons.
+- `/scripts`: Database setup and maintenance scripts.
+
+## Production Deployment
+
+For detailed production deployment instructions, including security setup, database configuration, and monitoring, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Quick Production Setup
+
+1. Set environment variables in your hosting platform
+2. Run database index creation: `node scripts/create-indexes.js` or call `/api/admin/setup-database`
+3. Deploy with your preferred platform (Vercel recommended)
+4. Test critical flows (see DEPLOYMENT.md for checklist)
+
+### Security Features
+
+- ✅ Input validation on all API endpoints (Zod)
+- ✅ Rate limiting on critical endpoints (Upstash Redis)
+- ✅ Server-side admin configuration
+- ✅ Cryptographically secure certificate IDs
+- ✅ Database indexes for performance
+- ✅ Pagination for scalability
 
 ## Contribution Guidelines
 

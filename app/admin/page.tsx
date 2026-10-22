@@ -32,7 +32,6 @@ import {
 } from 'recharts';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ADMIN_EMAIL } from '@/lib/constants';
 
 interface UserCourse {
     title: string;
@@ -86,14 +85,26 @@ export default function AdminDashboard() {
 
 
     useEffect(() => {
-        if (isLoaded) {
-            const isAdmin = user?.emailAddresses.some(e => e.emailAddress === ADMIN_EMAIL);
-            if (!isAdmin) {
+        const checkAdminAndFetch = async () => {
+            if (!isLoaded) return;
+
+            try {
+                const response = await fetch('/api/admin/check-admin');
+                const data = await response.json();
+
+                if (!data.isAdmin) {
+                    router.push('/');
+                    return;
+                }
+
+                fetchStats();
+            } catch (error) {
+                console.error('Error checking admin status:', error);
                 router.push('/');
-                return;
             }
-            fetchStats();
-        }
+        };
+
+        checkAdminAndFetch();
     }, [isLoaded, user]);
 
     const fetchStats = async () => {

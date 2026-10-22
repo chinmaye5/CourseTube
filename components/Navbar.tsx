@@ -4,14 +4,31 @@ import Link from 'next/link';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 import { BarChart3, Compass } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ADMIN_EMAIL } from '@/lib/constants';
+import { useState, useEffect } from 'react';
 
 const linkClass =
   'text-sm font-medium text-muted-foreground transition-colors hover:text-foreground';
 
 export function Navbar() {
   const { user } = useUser();
-  const isAdmin = user?.emailAddresses.some((e) => e.emailAddress === ADMIN_EMAIL);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch('/api/admin/check-admin');
+        const data = await response.json();
+        setIsAdmin(data.isAdmin);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    if (user) {
+      checkAdminStatus();
+    }
+  }, [user]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">

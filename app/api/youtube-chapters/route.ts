@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { youtubeChaptersSchema } from '@/lib/validation';
+import { checkRateLimit, rateLimits } from '@/lib/rate-limit';
 
 // Allow this route up to 60 s on Vercel (Pro plan). Hobby plan caps at
 // 10 s regardless of this value, but setting it explicitly documents
@@ -665,10 +667,31 @@ async function fetchPlaylistFromRSS(playlistId: string): Promise<Chapter[]> {
 
 export async function POST(request: NextRequest) {
     try {
-        const { videoId, playlistId } = await request.json();
+        const body = await request.json();
+        const validation = youtubeChaptersSchema.safeParse(body);
 
-        if (!videoId && !playlistId) {
-            return NextResponse.json({ error: 'Video ID or Playlist ID is required' }, { status: 400 });
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validation.error.issues },
+                { status: 400 }
+            );
+        }
+
+        const { videoId, playlistId } = validation.data;
+
+        // Rate limiting - use IP address or video/playlist ID as identifier
+        const identifier = videoId || playlistId || 'unknown';
+        const { success, remaining } = await checkRateLimit(
+            identifier,
+            rateLimits.youtubeChapters.limit,
+            rateLimits.youtubeChapters.window
+        );
+
+        if (!success) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'X-RateLimit-Remaining': remaining.toString() } }
+            );
         }
 
         const cacheKey = playlistId ? `playlist:${playlistId}` : `video:${videoId}`;
@@ -770,7 +793,7 @@ export async function POST(request: NextRequest) {
 
             // Set title if we still don't have one
             if (!title) {
-                if (html) {
+                if (html && playlistId) {
                     title = await fetchPlaylistTitle(playlistId, html, data);
                 } else {
                     title = 'YouTube Playlist Course';
@@ -790,6 +813,10 @@ export async function POST(request: NextRequest) {
             }
         } else {
             // Single video handling
+            if (!videoId) {
+                throw new Error('Video ID is required for single video mode');
+            }
+
             const url = `https://www.youtube.com/watch?v=${videoId}`;
             const res = await fetchWithTimeout(url, {
                 headers: YOUTUBE_SCRAPE_HEADERS
@@ -834,7 +861,7 @@ export async function POST(request: NextRequest) {
             title,
             hasChapters: chapters.length > 0,
             isPlaylist,
-            debug
+            ...(process.env.NODE_ENV === 'development' && { debug })
         };
 
         // Cache successful (and empty) results so reloading the same

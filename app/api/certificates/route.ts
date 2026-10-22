@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth, currentUser } from '@clerk/nextjs/server';
 import clientPromise from '@/lib/mongodb';
-import { crypto } from 'next/dist/compiled/@edge-runtime/primitives';
+import { randomBytes } from 'crypto';
+import { createCertificateSchema } from '@/lib/validation';
+import { checkRateLimit, rateLimits } from '@/lib/rate-limit';
 
-// Helper to generate unique Certificate ID
+// Helper to generate cryptographically secure Certificate ID
 function generateCertificateId(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 8; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return `CT-${code}`;
+    const bytes = randomBytes(16).toString('hex');
+    return `CT-${bytes.toUpperCase()}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -61,10 +59,29 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { videoId, courseTitle, totalWatchTime, chaptersCompleted, totalChapters, userName: bodyUserName } = body;
+        const validation = createCertificateSchema.safeParse(body);
 
-        if (!videoId) {
-            return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validation.error.issues },
+                { status: 400 }
+            );
+        }
+
+        const { videoId, courseTitle, totalWatchTime, chaptersCompleted, totalChapters, userName: bodyUserName } = validation.data;
+
+        // Rate limiting
+        const { success, remaining } = await checkRateLimit(
+            userId,
+            rateLimits.certificate.limit,
+            rateLimits.certificate.window
+        );
+
+        if (!success) {
+            return NextResponse.json(
+                { error: 'Too many certificate requests. Please try again later.' },
+                { status: 429, headers: { 'X-RateLimit-Remaining': remaining.toString() } }
+            );
         }
 
         let userName = bodyUserName;

@@ -11,6 +11,18 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const { searchParams } = new URL(request.url);
+        const userLimit = parseInt(searchParams.get('userLimit') || '50', 10);
+        const userSkip = parseInt(searchParams.get('userSkip') || '0', 10);
+
+        // Validate pagination parameters
+        if (userLimit < 1 || userLimit > 100) {
+            return NextResponse.json(
+                { error: 'User limit must be between 1 and 100' },
+                { status: 400 }
+            );
+        }
+
         const client = await clientPromise;
         const db = client.db('courses');
         const collection = db.collection('userProgress');
@@ -21,22 +33,37 @@ export async function GET(request: NextRequest) {
         // Unique users who have started a course
         const uniqueUsersInDb = await collection.distinct('userId');
 
-        // Fetch all users from Clerk
+        // Fetch users from Clerk with pagination
         const clerk = await clerkClient();
         const usersResponse = await clerk.users.getUserList({
-            limit: 500, // Adjust as needed
+            limit: userLimit,
+            offset: userSkip,
         });
         const users = usersResponse.data;
+        const totalCount = usersResponse.totalCount;
 
-        const userStats = await Promise.all(users.map(async (user) => {
-            const userCourses = await collection.find({ userId: user.id }).toArray();
+        // Optimize: Fetch all user courses in a single query instead of one per user
+        const userIds = users.map(u => u.id);
+        const allUserCourses = await collection.find({ userId: { $in: userIds } }).toArray();
+
+        // Group courses by userId
+        const coursesByUserId = new Map();
+        allUserCourses.forEach(course => {
+            if (!coursesByUserId.has(course.userId)) {
+                coursesByUserId.set(course.userId, []);
+            }
+            coursesByUserId.get(course.userId).push(course);
+        });
+
+        const userStats = users.map((user) => {
+            const userCourses = coursesByUserId.get(user.id) || [];
 
             return {
                 id: user.id,
                 name: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (user.username || 'System User'),
                 email: user.emailAddresses[0]?.emailAddress || 'No Email',
                 courseCount: userCourses.length,
-                courses: userCourses.map(c => ({
+                courses: userCourses.slice(0, 10).map((c: any) => ({ // Limit to 10 courses per user for performance
                     title: c.title,
                     videoId: c.videoId,
                     progress: c.progress?.progressPercentage || 0,
@@ -44,7 +71,7 @@ export async function GET(request: NextRequest) {
                 })),
                 createdAt: user.createdAt,
             };
-        }));
+        });
 
         // Calculate DAU and MAU
         const now = new Date();
@@ -80,18 +107,24 @@ export async function GET(request: NextRequest) {
                 }
             },
             { $sort: { "_id": 1 } },
-            { $limit: 30 } // Extended to 30 days for better overview
+            { $limit: 30 }
         ]).toArray();
 
         return NextResponse.json({
             stats: {
-                totalUsers: users.length,
+                totalUsers: totalCount,
                 totalCoursesEnrolled: totalCourses,
                 activeUsers: userStats.filter(u => u.courseCount > 0).length,
                 dau: dauCount.length,
                 mau: mauCount.length,
             },
             userStats: userStats.sort((a, b) => b.courseCount - a.courseCount),
+            userPagination: {
+                total: totalCount,
+                limit: userLimit,
+                skip: userSkip,
+                hasMore: userSkip + users.length < totalCount
+            },
             activityData: activityData.map(item => ({
                 date: item._id,
                 courses: item.courses,

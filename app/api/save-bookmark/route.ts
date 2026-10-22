@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { saveBookmarkSchema, deleteBookmarkSchema, updateBookmarkSchema } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
     try {
@@ -11,11 +12,17 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { videoId, chapterIndex, timestamp, title } = await request.json();
+        const body = await request.json();
+        const validation = saveBookmarkSchema.safeParse(body);
 
-        if (!videoId || chapterIndex === undefined || timestamp === undefined) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validation.error.issues },
+                { status: 400 }
+            );
         }
+
+        const { videoId, chapterIndex, timestamp, title } = validation.data;
 
         const client = await clientPromise;
         const db = client.db('courses');
@@ -85,7 +92,17 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { bookmarkId } = await request.json();
+        const body = await request.json();
+        const validation = deleteBookmarkSchema.safeParse(body);
+
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validation.error.issues },
+                { status: 400 }
+            );
+        }
+
+        const { bookmarkId } = validation.data;
 
         const client = await clientPromise;
         const db = client.db('courses');
@@ -114,11 +131,17 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { bookmarkId, title } = await request.json();
+        const body = await request.json();
+        const validation = updateBookmarkSchema.safeParse(body);
 
-        if (!bookmarkId || !title) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: validation.error.issues },
+                { status: 400 }
+            );
         }
+
+        const { bookmarkId, title } = validation.data;
 
         const client = await clientPromise;
         const db = client.db('courses');
